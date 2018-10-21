@@ -1,5 +1,7 @@
 all: client server
 
-client:
+client: UDPClient.cpp UDPClient.hpp
+	g++ -c UDPClient.cpp
 
-server:
+server: UDPServer.hpp UDPServer.cpp
+	g++ -c UDPServer.cpp
