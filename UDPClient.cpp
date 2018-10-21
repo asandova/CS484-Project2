@@ -31,8 +31,12 @@ void UDPClient::waiting(){
     int close = 0;
     while(!close){
         Send();
-
         Receive();
+	vector<char>::iterator itr;
+	for(itr = Buffer.begin(); itr != Buffer.end(); itr++){
+		printf("%c", *itr);
+	}
+	printf("\n");
     }
 }
 
