@@ -13,6 +13,7 @@ class UDPClient{
     private:
         string ServerAddress;
         int BufferLength;
+        int ReceiveLength;
         int Port;
         int Ssocket;
         vector<char>Buffer;

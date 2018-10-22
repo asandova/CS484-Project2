@@ -12,12 +12,14 @@ using namespace std;
 class UDPServer{
 
     private:
-        int Port;
+        
         int BufferLength;
-        vector<char>Buffer;
+        int Port;
         int Ssocket;
         int receiveLength;
+        vector<char>Buffer;
         socklen_t Slength;
+
         struct sockaddr_in my_addr;
         struct sockaddr_in client_addr;
 
