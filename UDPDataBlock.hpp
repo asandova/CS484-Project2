@@ -1,27 +1,28 @@
-#ifdef UDPDATABLOCK_HPP
+#ifndef UDPDATABLOCK_HPP
 #define UDPDATABLOCK_HPP
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
-struct hashBlock{
+struct DataBlock{
     string data;
-    string hash;
+    size_t hash;
 };
 
 class UDPData{
 
     private:
-        int bufferLength;
-        vector<struct hashBlock> Block;
+        size_t blockLength;
+        vector<struct DataBlock> Blocks;
+        hash<string> blockHasher;
     public:
-        UDPData(int bufLength);
+        UDPData(size_t blockLength);
         void parseFile(string filename);
         void append(string data);
-        void hash();
-        friend struct hashBlock operator[](int index);
+        struct DataBlock operator[](int index);
         int size();
 
 };

@@ -23,7 +23,7 @@ class UDPClient{
 
     public:
         UDPClient(string ip, int port);
-        void waiting();
+        void echo();
     private:
         void Send();
         void Receive();

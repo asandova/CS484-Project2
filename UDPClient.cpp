@@ -27,7 +27,7 @@ UDPClient::UDPClient(string ip, int port){
 
 }
 
-void UDPClient::waiting(){
+void UDPClient::echo(){
     int close = 0;
     while(!close){
         Send();
