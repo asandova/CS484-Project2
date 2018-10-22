@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ class UDPServer{
         void echo();
 
     private:
-        void Send(/*data struct*/);
+        void Send(string data);
         void Receive();
         void closeSocket();
 

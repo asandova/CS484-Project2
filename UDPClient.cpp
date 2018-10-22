@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <vector>
+#include <string>
 
 #include "UDPClient.hpp"
 
@@ -29,15 +30,25 @@ UDPClient::UDPClient(string ip, int port){
 
 void UDPClient::echo(){
     int close = 0;
-    while(!close){
-        Send();
+    int counter = 0;
+    while(counter < 300){
+        Send("message");
         Receive();
+	counter++;
+    }
+    if( shutdown(Ssocket, SHUT_WR) == -1 ){
+        perror("Socket Failed to close: Write\n");
+        exit(1);
+    }
+    if( shutdown(Ssocket, SHUT_RD) == -1 ){
+        perror("Socket Failed to close: Read\n");
+        exit(1);
     }
 }
 
-void UDPClient::Send(){
+void UDPClient::Send(string data){
 
-    if(sendto(Ssocket, "message", strlen("message") , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
+    if(sendto(Ssocket, data.c_str() , data.size() , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
         perror("sendto");
         exit(1);
     }
@@ -49,14 +60,14 @@ void UDPClient::Receive(){
     char* buf = &Buffer[0];
     memset(buf, '\0', BufferLength);
 
-    if(recvfrom(Ssocket, buf, BufferLength,0,(struct sockaddr * ) &server_addr, &Slength ) == -1 ){
+    if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,0,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
             perror("revfrom()");
             exit(1);
     }
-    cout << "ReceivedLength: " << receiveLength << endl;
-    cout << "Received packet from " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
+    cout << "ReceivedLength: " << ReceiveLength << endl;
+    cout << "Received packet from " << inet_ntoa(server_addr.sin_addr)  << ":" << ntohs(server_addr.sin_port) << endl;
     cout << "Data: ";
-    for(int i = 0; i < receiveLength && i < BufferLength; i++){
+    for(int i = 0; i < ReceiveLength && i < BufferLength; i++){
         cout << Buffer[i];
     }
     cout << endl;

@@ -26,7 +26,7 @@ class UDPClient{
         UDPClient(string ip, int port);
         void echo();
     private:
-        void Send();
+        void Send(string data);
         void Receive();
 
 

@@ -76,15 +76,19 @@ void UDPServer::echo(){
             break;
         }
         Receive();
+        string echo = string( (char*)&Buffer[0] );
         if(receiveLength != 0)
-            Send();
+            Send( echo );
         counter++;
     }
-    if ( shutdown(Ssocket,SHUT_RDWR) == -1){
-        perror("Socket Failed to close\n");
+    if ( shutdown(Ssocket,SHUT_WR) == -1){
+        perror("Socket Failed to close: Write\n");
         exit(1);
     }
-    
+    if ( shutdown(Ssocket,SHUT_RD) == -1){
+        perror("Socket Failed to close: Read\n");
+        exit(1);
+    }
 }
 
 void UDPServer::Receive(){
@@ -104,13 +108,13 @@ void UDPServer::Receive(){
     cout << endl;
 }
 
-void UDPServer::Send(){
+void UDPServer::Send(string data){
     cout << "Sending..." << endl;
-    char* temp = &Buffer[0];
-    if (sendto(Ssocket, temp, receiveLength, 0, (struct sockaddr*) &client_addr, Slength) == -1){
+    cout << "Data:" << data << endl;
+    if (sendto(Ssocket, data.c_str() , data.size(), 0, (struct sockaddr*) &client_addr, Slength) == -1){
         perror("sendto()");
         close(Ssocket);
-        exit(0);
+        exit(1);
     }
 
 }

@@ -24,5 +24,5 @@ datablock: UDPDataBlock.hpp
 
 clean:
 	rm -rf *.o
-	rm server
-	rm client
+	if [ -f server ]; then rm server; fi;
+	if [ -f client ]; then rm client; fi;
