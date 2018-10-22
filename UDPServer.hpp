@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-//#include <netinet/in.h>
 #include <unistd.h>
 #include <vector>
 
@@ -14,8 +13,8 @@ class UDPServer{
 
     private:
         int Port;
-        int bufferLength;
-        vector<char>buffer;
+        int BufferLength;
+        vector<char>Buffer;
         int Ssocket;
         int receiveLength;
         socklen_t Slength;
@@ -25,12 +24,13 @@ class UDPServer{
 
     public:
         UDPServer();
-        //UDPServer(/**/);
-        void waiting();
+        UDPServer(int port);
+        void echo();
 
     private:
         void Send(/*data struct*/);
         void Receive();
+        void closeSocket();
 
 };
 #endif //UDPSERVER_HPP

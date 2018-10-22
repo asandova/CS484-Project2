@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 
     }
 
-    UDPServer testServer = UDPServer();
-    testServer.waiting();
+    UDPServer testServer = UDPServer(Port);
+    testServer.echo();
     return -1;
 }
