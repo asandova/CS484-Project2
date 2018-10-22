@@ -53,5 +53,12 @@ void UDPClient::Receive(){
             perror("revfrom()");
             exit(1);
     }
+    cout << "ReceivedLength: " << receiveLength << endl;
+    cout << "Received packet from " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
+    cout << "Data: ";
+    for(int i = 0; i < receiveLength && i < BufferLength; i++){
+        cout << Buffer[i];
+    }
+    cout << endl;
 
 }

@@ -9,7 +9,7 @@
 using namespace std;
 
 UDPData::UDPData(size_t blocklength){
-    blockLength = blocklength;
+    blockLength = 504;//504 maximum number of character or bytes per block
     Blocks = vector<DataBlock>();
 }
 
@@ -18,21 +18,22 @@ void UDPData::parseFile(string filename){
     datafile.open(filename, ios::in | ios::binary);
     if(!datafile.is_open()){
         cout << "File failed to open" << endl;
-    }
-    while(!datafile.fail()){
-        char C;
-        string data = "";
-        int count = 0;
-        while(count < blockLength){
-            C = datafile.get();
-            data.push_back(C);
-            count++;
+    }else{
+        while(!datafile.fail()){
+            char C;
+            string data = "";
+            int count = 0;
+            while(count < blockLength && !datafile.fail()){
+                C = datafile.get();
+                data.push_back(C);
+                count++;
+            }
+            append(data);
+            data = "";
+            count = 0;
         }
-        append(data);
-        data = "";
-        count = 0;
+        datafile.close();
     }
-    datafile.close();
 }
 
 void UDPData::append(string data){
@@ -63,4 +64,13 @@ struct DataBlock UDPData::operator[](int index){
 
 int UDPData::size(){
     return Blocks.size();
+}
+
+string UDPData::toUDP(size_t index){
+//
+    return "";
+}
+
+void UDPData::fromUDP(){
+//
 }

@@ -8,8 +8,10 @@
 using namespace std;
 
 struct DataBlock{
-    string data;
-    size_t hash;
+    //DateBlock stores the check hash and data that is to be transmitted with UDP
+    //Each block is to be capped at 512 bytes
+    string data; // can be a maximum of 504 characters/bytes
+    size_t hash; // size_t uses 8 bytes
 };
 
 class UDPData{
@@ -23,6 +25,8 @@ class UDPData{
         void parseFile(string filename);
         void append(string data);
         struct DataBlock operator[](int index);
+        string toUDP(size_t index);
+        void fromUDP();
         int size();
 
 };
