@@ -13,12 +13,12 @@ int main(int argc, char* argv[]){
     if(argc > 1){
         int i = 0;
         while(i < argc){
-            if(strcmp(argv[i],"-port") == 1){
-                Port = stoi(argv[i+1]);
-                if(Port > 65535 || Port < 0){
+            if(strcmp(argv[i],"-port") == 0){
+                int temp = stoi(argv[i+1],nullptr,10);
+                if(temp > 65535 || temp < 0){
                     cout << "Invalid Port Number.\nSetting to default" << endl;
                 }else{
-                    Port = atoi(argv[i+1]);
+                    Port = temp;
                 }
                 i++;
             }

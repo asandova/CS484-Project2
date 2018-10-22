@@ -72,7 +72,7 @@ void UDPServer::echo(){
     int close = 0;
     int counter = 0;
     while(!close){
-        if(receiveLength == 0 || counter > 3000){
+        if(counter > 3000){
             break;
         }
         Receive();
@@ -93,8 +93,9 @@ void UDPServer::echo(){
 
 void UDPServer::Receive(){
     cout << "Receiving..." << endl;
-    char* temp = &Buffer[0];
-    if( ( receiveLength = recvfrom(Ssocket, temp, BufferLength, 0, (struct sockaddr *) &client_addr, &Slength ) ) == -1 ){
+    char* buf = &Buffer[0];
+    memset(buf, '\0', BufferLength);
+    if( ( receiveLength = recvfrom(Ssocket, buf, BufferLength, 0, (struct sockaddr *) &client_addr, &Slength ) ) == -1 ){
         perror("recvfrom()");
         close(Ssocket);
         exit(1);
