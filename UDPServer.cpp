@@ -100,7 +100,7 @@ void UDPServer::Receive(){
     /*
         Receives incoming UDP data from socket
     */
-    cout << "Receiving..." << endl;
+    if(debugMode || verboseMode) {cout << "Receiving..." << endl;}
     char* buf = &Buffer[0];
     memset(buf, '\0', BufferLength);
     if( ( receiveLength = recvfrom(Ssocket, buf, BufferLength, 0, (struct sockaddr *) &client_addr, &Slength ) ) == -1 ){
@@ -108,28 +108,32 @@ void UDPServer::Receive(){
         close(Ssocket);
         exit(1);
     }
-    cout << "ReceivedLength: " << receiveLength << endl;
-    cout << "Received packet from " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
-    cout << "Data: ";
-    for(int i = 0; i < receiveLength && i < BufferLength; i++){
-        cout << Buffer[i];
+    if(debugMode || verboseMode){
+        cout << "ReceivedLength: " << receiveLength << endl;
+        cout << "Received packet from " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
+        cout << "Data: ";
+        for(int i = 0; i < receiveLength && i < BufferLength; i++){
+            cout << Buffer[i];
+        }
+        cout << endl;
     }
-    cout << endl;
 }
 
 void UDPServer::Send(string data){
     /*
         Send data to desired address
     */
-    cout << "Sending..." << endl;
-    cout << "Data:" << data << endl;
+   if(debugMode || verboseMode){
+        cout << "Sending..." << endl;
+        cout << "Data:" << data << endl;
+    }
     int sentlength;
     if ( (sentlength =  sendto(Ssocket, data.c_str() , data.size(), 0, (struct sockaddr*) &client_addr, Slength)) == -1){
         perror("sendto()");
         close(Ssocket);
         exit(1);
     }
-    cout << "sent Length:" << sentlength << endl;
+    if(debugMode || verboseMode){cout << "sent Length:" << sentlength << endl;}
 
 }
 void UDPServer::closeSocket(){
