@@ -10,9 +10,10 @@
 
 
 UDPClient::UDPClient(string ip, int port){
+    BufferLength = 512;
     Port = port;
     Buffer = vector<char>();
-    Buffer.reserve(BufferLength);
+    Buffer.resize(BufferLength, '\0');
 
     Slength = sizeof(server_addr);
 
@@ -21,18 +22,21 @@ UDPClient::UDPClient(string ip, int port){
     server_addr.sin_port = htons(Port);
     inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
 
-    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,0)) == -1 ){
+    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
         perror((char * )Ssocket);
         exit(1);
     }
-
+    if(inet_aton(ip.c_str(),&server_addr.sin_addr) == 0){
+    	fprintf(stderr, "inet_aton() failed\n");
+	exit(1);
+    }
 }
 
 void UDPClient::echo(){
     int close = 0;
     int counter = 0;
-    while(counter < 300){
-        Send("message");
+    while(counter < 1){
+        Send("Testing Message");
         Receive();
 	counter++;
     }
@@ -60,14 +64,14 @@ void UDPClient::Receive(){
     char* buf = &Buffer[0];
     memset(buf, '\0', BufferLength);
 
-    if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,0,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
+    if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,MSG_WAITALL,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
             perror("revfrom()");
             exit(1);
     }
     cout << "ReceivedLength: " << ReceiveLength << endl;
     cout << "Received packet from " << inet_ntoa(server_addr.sin_addr)  << ":" << ntohs(server_addr.sin_port) << endl;
     cout << "Data: ";
-    for(int i = 0; i < ReceiveLength && i < BufferLength; i++){
+    for(int i = 0;/* i < ReceiveLength && */ i < BufferLength; i++){
         cout << Buffer[i];
     }
     cout << endl;
