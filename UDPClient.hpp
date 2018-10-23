@@ -1,3 +1,10 @@
+/*
+*   File: UDPClient.hpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: Contains the UDPClient class Definition
+*   Class: CS484
+*/
 #ifndef UDPCLIENT_HPP
 #define UDPCLIENT_HPP
 
@@ -11,6 +18,7 @@ using namespace std;
 class UDPClient{
 
     private:
+        bool debugMode;
         string ServerAddress;
         int BufferLength;
         int ReceiveLength;
@@ -23,11 +31,14 @@ class UDPClient{
         struct sockaddr_in server_addr;
 
     public:
+        static bool DebugMode;
+        static bool verboseMode;
         UDPClient(string ip, int port);
         void echo();
     private:
         void Send(string data);
         void Receive();
+        void closeSocket();
 
 
 };

@@ -1,3 +1,10 @@
+/*
+*   File: UDPClient.cpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: Contains the UDPClient class Definition
+*   Class: CS484
+*/
 #include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,11 +15,16 @@
 
 #include "UDPClient.hpp"
 
+using namespace std;
+
+bool UDPClient::DebugMode = false;
+bool UDPClient::verboseMode = false;
 
 UDPClient::UDPClient(string ip, int port){
+    BufferLength = 512;
     Port = port;
     Buffer = vector<char>();
-    Buffer.reserve(BufferLength);
+    Buffer.resize(BufferLength, '\0');
 
     Slength = sizeof(server_addr);
 
@@ -21,8 +33,13 @@ UDPClient::UDPClient(string ip, int port){
     server_addr.sin_port = htons(Port);
     inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
 
-    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,0)) == -1 ){
+    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
         perror((char * )Ssocket);
+        exit(1);
+    }
+
+    if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
+        fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
 
@@ -67,9 +84,16 @@ void UDPClient::Receive(){
     cout << "ReceivedLength: " << ReceiveLength << endl;
     cout << "Received packet from " << inet_ntoa(server_addr.sin_addr)  << ":" << ntohs(server_addr.sin_port) << endl;
     cout << "Data: ";
-    for(int i = 0; i < ReceiveLength && i < BufferLength; i++){
+    for(int i = 0; i < BufferLength; i++){
         cout << Buffer[i];
     }
     cout << endl;
 
+}
+
+void UDPClient::closeSocket(){
+    if( close(Ssocket) == -1 ){
+        perror("Socket Closing Error: ");
+        exit(1);
+    }
 }

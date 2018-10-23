@@ -1,4 +1,13 @@
-//#define _BSD_SOURCE
+/*
+*   File: UDPServer.cpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: Contains the UDPServer class Definition
+*   Class: CS484
+*/
+
+//Socket headers
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -14,7 +23,13 @@
 
 using namespace std;
 
+bool UDPServer::DebugMode = false;
+bool UDPServer::verboseMode = false;
+
 UDPServer::UDPServer(){
+    /*
+        default constructor for UDPServer object
+    */
     BufferLength = 512;
     Port = 65535;
     Buffer = vector<char>();
@@ -22,14 +37,13 @@ UDPServer::UDPServer(){
 
     Slength = sizeof(client_addr);
 
-    //Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
-    Ssocket=socket(AF_INET,SOCK_DGRAM,0);
+    Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
         perror((char*)Ssocket);
         exit(1);
     }
-    bzero( &my_addr, sizeof(my_addr) );
-    //memset( (char*) &my_addr,0, sizeof(my_addr) );
+    //bzero( &my_addr, sizeof(my_addr) );
+    memset( (char*) &my_addr,0, sizeof(my_addr) );
     my_addr.sin_family = AF_INET;
     my_addr.sin_port = htons(Port);
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -48,14 +62,13 @@ UDPServer::UDPServer(int port){
 
     Slength = sizeof(client_addr);
 
-    //Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
-    Ssocket=socket(AF_INET,SOCK_DGRAM,0);
+    Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
         perror((char*)Ssocket);
         exit(1);
     }
-    bzero( &my_addr, sizeof(my_addr) );
-    //memset( (char*) &my_addr,0, sizeof(my_addr) );
+    //bzero( &my_addr, sizeof(my_addr) );
+    memset( (char*) &my_addr,0, sizeof(my_addr) );
     my_addr.sin_family = AF_INET;
     my_addr.sin_port = htons(Port);
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -65,33 +78,28 @@ UDPServer::UDPServer(int port){
         perror("bind");
         exit(1);
     }
+    
 }
 
 void UDPServer::echo(){
-
+    /*
+        Does a simple echo procedure
+    */
     int close = 0;
     int counter = 0;
-    while(!close){
-        if(counter > 3000){
-            break;
-        }
+    while(counter < 1){
         Receive();
         string echo = string( (char*)&Buffer[0] );
-        if(receiveLength != 0)
-            Send( echo );
+        Send( echo );
         counter++;
     }
-    if ( shutdown(Ssocket,SHUT_WR) == -1){
-        perror("Socket Failed to close: Write\n");
-        exit(1);
-    }
-    if ( shutdown(Ssocket,SHUT_RD) == -1){
-        perror("Socket Failed to close: Read\n");
-        exit(1);
-    }
+    closeSocket();
 }
 
 void UDPServer::Receive(){
+    /*
+        Receives incoming UDP data from socket
+    */
     cout << "Receiving..." << endl;
     char* buf = &Buffer[0];
     memset(buf, '\0', BufferLength);
@@ -110,12 +118,26 @@ void UDPServer::Receive(){
 }
 
 void UDPServer::Send(string data){
+    /*
+        Send data to desired address
+    */
     cout << "Sending..." << endl;
     cout << "Data:" << data << endl;
-    if (sendto(Ssocket, data.c_str() , data.size(), 0, (struct sockaddr*) &client_addr, Slength) == -1){
+    int sentlength;
+    if ( (sentlength =  sendto(Ssocket, data.c_str() , data.size(), 0, (struct sockaddr*) &client_addr, Slength)) == -1){
         perror("sendto()");
         close(Ssocket);
         exit(1);
     }
+    cout << "sent Length:" << sentlength << endl;
 
+}
+void UDPServer::closeSocket(){
+    /*
+        Properly closes the socket
+    */
+    if (close(Ssocket) == -1){
+        perror("Socket Closing Error: ");
+        exit(1);
+    }
 }

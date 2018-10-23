@@ -1,3 +1,10 @@
+/*
+*   File: UDPDataBlock.cpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: Contains the UDPDataBlock class Definition
+*   Class: CS484
+*/
 #include <string>
 #include <vector>
 #include <stdlib.h>
