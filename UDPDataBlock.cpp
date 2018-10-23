@@ -15,9 +15,14 @@
 
 using namespace std;
 
-UDPData::UDPData(size_t blocklength){
-    blockLength = 504;//504 maximum number of character or bytes per block
-    Blocks = vector<DataBlock>();
+UDPData::UDPData(){
+    BlockLength = 508;//508 maximum number of character or bytes per block
+    Blocks = vector<string>();
+}
+
+UDPData::UDPData(unsigned int blocklength){
+    BlockLength = blockLength;
+    Blocks = vector<string>();
 }
 
 void UDPData::parseFile(string filename){
@@ -56,12 +61,12 @@ void UDPData::append(string data){
 
     struct DataBlock nBlock;
     nBlock.data = data;
-    nBlock.hash = blockHasher(data);
+    nBlock.index = size();
 
-    Blocks.push_back(nBlock);
+    Blocks.push_back(nblock);
 }
 
-struct DataBlock UDPData::operator[](int index){
+string UDPData::operator[](int index){
     if(index >= Blocks.size()){
         cout << "Array index out of bound!" << endl;
         exit(0);
@@ -69,15 +74,22 @@ struct DataBlock UDPData::operator[](int index){
     return Blocks[index];
 }
 
+string UDPData::toUDP(int index){
+    string dString = "";
+
+
+
+    return dString;
+}
+
+void UDPData::fromUDP(string block){
+    string data;
+    
+    struct DataBlock incomming;
+    incomming.data = block.substr(4,block.size());
+
+}
+
 int UDPData::size(){
     return Blocks.size();
-}
-
-string UDPData::toUDP(size_t index){
-//
-    return "";
-}
-
-void UDPData::fromUDP(){
-//
 }

@@ -2,7 +2,7 @@
 *   File: UDPServer.hpp
 *   Author: August B. Sandoval
 *   Date: 2018-10-19
-*   Purpose: Contains the UDPServer class Definition
+*   Purpose: Contains the UDPServer class Declaration
 *   Class: CS484
 */
 #ifndef UDPSERVER_HPP

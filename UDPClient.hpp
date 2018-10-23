@@ -2,7 +2,7 @@
 *   File: UDPClient.hpp
 *   Author: August B. Sandoval
 *   Date: 2018-10-19
-*   Purpose: Contains the UDPClient class Definition
+*   Purpose: Contains the UDPClient class Declaration
 *   Class: CS484
 */
 #ifndef UDPCLIENT_HPP
