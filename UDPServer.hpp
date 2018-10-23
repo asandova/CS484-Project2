@@ -18,8 +18,6 @@
 
 using namespace std;
 
-
-
 class UDPServer{
 
     private:

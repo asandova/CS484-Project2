@@ -27,14 +27,16 @@ class UDPData{
         unsigned int BlockLength; // This is the length of each block
         vector<struct DataBlock> Blocks;
     public:
+        UDPData();
         UDPData(unsigned int blockLength);
-        UDPData(unsigned int blockLength);
+        UDPData(unsigned int blockLength, int size);
         void parseFile(string filename);
         void append(string data);
         struct DataBlock operator[](int index);
         int size();
         string toUDP(int index);
         void fromUDP(string block);
+        void resizeTo(int nlen);
 
 };
 
