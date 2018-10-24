@@ -22,6 +22,12 @@ int main(int argc, char* argv[]){
                 }
                 i++;
             }
+            if(strcmp(argv[i],"-v") == 0){
+                UDPServer::verboseMode = true;
+            }
+            if(strcmp(argv[i],"-debug") == 0){
+                UDPServer::DebugMode = true;
+            }
             i++;
         }
 

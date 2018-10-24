@@ -25,7 +25,13 @@ int main( int argc, char* argv[]){
 			if(strcmp(argv[i], "-ip") == 0){
 				IP = string(argv[i+1]);
 				i++;
-			}			
+			}
+			if(strcmp(argv[i], "-v") == 0){
+				UDPClient::verboseMode = true;
+			}	
+			if(strcmp(argv[i], "-debug") == 0){
+				UDPClient::DebugMode = true;
+			}	
 			i++;
 		}
 	}

@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <vector>
 #include <string>
+#include "UDPDataBlock.hpp"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ class UDPClient{
         int Port;
         int Ssocket;
         vector<char>Buffer;
+        vector<struct UDPData> receivedData;
         socklen_t Slength;
     
         struct sockaddr_in my_addr;
@@ -35,11 +37,11 @@ class UDPClient{
         static bool verboseMode;
         UDPClient(string ip, int port);
         void echo();
+        void save();
     private:
         void Send(string data);
         void Receive();
         void closeSocket();
-
 
 };
 #endif //UDPCLIENT_HPP

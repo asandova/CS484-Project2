@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 
 #include <iostream>
 #include <stdlib.h>
@@ -26,14 +27,15 @@ using namespace std;
 bool UDPServer::DebugMode = false;
 bool UDPServer::verboseMode = false;
 
-UDPServer::UDPServer(){
-    /*
-        default constructor for UDPServer object
-    */
+UDPServer::UDPServer(string filename){
     BufferLength = 512;
     Port = 65535;
     Buffer = vector<char>();
     Buffer.resize(BufferLength, '\0');
+    Active = vector<struct OpenConnections>();
+    TimeInterval.tv_usec = 500;
+
+    dataToSend.parseFile(filename);
 
     Slength = sizeof(client_addr);
 
@@ -54,11 +56,15 @@ UDPServer::UDPServer(){
         exit(1);
     }
 }
-UDPServer::UDPServer(int port){
+UDPServer::UDPServer(string filename, int port){
     BufferLength = 512;
     Port = port;
     Buffer = vector<char>();
     Buffer.resize(BufferLength, '\0');
+    Active = vector<struct OpenConnections>();
+    TimeInterval.tv_usec = 500;
+
+    dataToSend.parseFile(filename);
 
     Slength = sizeof(client_addr);
 
@@ -78,7 +84,44 @@ UDPServer::UDPServer(int port){
         perror("bind");
         exit(1);
     }
+    if(debugMode||verboseMode){
+        cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
+    }
     
+}
+void UDPServer::run(){
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(Ssocket, &rfds);
+    int running = 1;
+    while(running){
+        int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
+        if(selRet == -1){
+            //error
+            perror("bind");
+            closeSocket();
+            exit(1);
+        }
+        else if(selRet == 0){
+            //timeout
+        }else{
+            Receive();
+            vector<struct OpenConnections>::iterator itr;
+            for(itr = Active.begin(); itr != Active.end(); ++itr){
+                if( client_addr != *itr ){
+                    //do handshake
+                        //send number total number of packets
+                    break;
+                }else if(client_addr == *itr){
+                    //check ack
+                        //this is the number of the last received block
+                    //send new block or resend
+
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void UDPServer::echo(){
@@ -140,8 +183,10 @@ void UDPServer::closeSocket(){
     /*
         Properly closes the socket
     */
+    if(debugMode || verboseMode){ cout << "closing socket " << Ssocket << endl;}
     if (close(Ssocket) == -1){
         perror("Socket Closing Error: ");
         exit(1);
     }
+    if(debugMode || verboseMode){ cout << "Socket " << Ssocket  << " successfuly closed"<< endl;}
 }

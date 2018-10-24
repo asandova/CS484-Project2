@@ -21,11 +21,11 @@ UDPData::UDPData(){
 }
 
 UDPData::UDPData(unsigned int blocklength){
-    BlockLength = BlockLength;
+    BlockLength = blockLength;
     Blocks = vector<struct DataBlock>();
 }
 UDPData::UDPData(unsigned int blockLength, int size){
-    BlockLength = BlockLength;
+    BlockLength = blockLength;
     Blocks = vector<struct DataBlock>();
     resizeTo(size);
 }
