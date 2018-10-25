@@ -61,6 +61,7 @@ void UDPClient::echo(){
         perror("Socket Failed to close: Read\n");
         exit(1);
     }
+    closeSocket();
 }
 
 void UDPClient::Send(string data){
