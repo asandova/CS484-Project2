@@ -10,40 +10,57 @@
 
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
 #include <string>
+#include "UDPDataBlock.hpp"
 
 using namespace std;
+
+struct OpenConnections{
+    int PacketLength;
+    int position;
+    struct sockaddr_in address;
+    socklen_t Slen;
+    struct UDPData toSend;
+    clock_t lastSent;
+    int tries;
+};
 
 class UDPServer{
 
     private:
         bool debugMode;
-        int BufferLength;
         int Port;
-        int Ssocket;
+        static int Ssocket;
         int receiveLength;
-        vector<char>Buffer;
+        string FileToServer;
+
+        int BufferLength;//
+        string Buffer;
+        struct timeval TimeInterval;
         socklen_t Slength;
+        vector<struct OpenConnections> Clients;
 
         struct sockaddr_in my_addr;
         struct sockaddr_in client_addr;
 
-
     public:
         static bool DebugMode;
         static bool verboseMode;
-        UDPServer();
-        UDPServer(int port);
-        void echo();
+        UDPServer(string filename);
+        UDPServer(string filename, int port);
+        static void terminateServer(int signum);
+        void run();
+        //void echo();
 
     private:
-        void Send(string data);
+        void Send(string data, struct sockaddr_in client, socklen_t clen);
         void Receive();
-        void closeSocket();
+        static void closeSocket();
 
 };
 #endif //UDPSERVER_HPP
