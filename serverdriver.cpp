@@ -9,7 +9,7 @@ using namespace std;
 
 int main(int argc, char* argv[]){
     int Port;
-
+    string filename = "";
     if(argc > 1){
         int i = 0;
         while(i < argc){
@@ -27,6 +27,10 @@ int main(int argc, char* argv[]){
             }
             if(strcmp(argv[i],"-debug") == 0){
                 UDPServer::DebugMode = true;
+            }
+            if(strcmp(argv[i], "-file")==0){
+                filename = argv[i+1];
+                i++;
             }
             i++;
         }
