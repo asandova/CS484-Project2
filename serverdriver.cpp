@@ -33,7 +33,8 @@ int main(int argc, char* argv[]){
 
     }
 
-    UDPServer testServer = UDPServer(Port);
-    testServer.echo();
+    UDPServer testServer = UDPServer("toSend.txt",Port);
+    //testServer.echo();
+    testServer.run();
     return -1;
 }
