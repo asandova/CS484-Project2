@@ -61,6 +61,9 @@ UDPServer::UDPServer(string filename){
         perror("bind");
         exit(1);
     }
+    if(debugMode||verboseMode){
+        cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
+    }
 }
 UDPServer::UDPServer(string filename, int port){
     BufferLength = 512;
@@ -98,6 +101,9 @@ UDPServer::UDPServer(string filename, int port){
     
 }
 void UDPServer::run(){
+    if(debugMode||verboseMode){
+        cout << "Server is running..." << endl;
+    }
     signal(SIGINT, terminateServer);
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -113,6 +119,9 @@ void UDPServer::run(){
         }
         else if(selRet == 0){
             //timeout
+            if(debugMode||verboseMode){
+                cout << "Timeout occured..." << endl;
+            }
             double duration;
             vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
@@ -123,8 +132,14 @@ void UDPServer::run(){
                         itr->tries++;
                         Send( UDPData::toUDP( itr->toSend[itr->position] ) , itr->address, itr->Slen );
                         itr->lastSent = clock();
+                        if(debugMode||verboseMode){
+                            cout << "Resending to: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
+                        }
                     }else{
                         //terminate connection after five timeouts
+                        if(debugMode||verboseMode){
+                            cout << "Removing Client: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
+                        }
                         Clients.erase(itr);
                     }
                 }
@@ -261,7 +276,7 @@ void UDPServer::closeSocket(){
     if(DebugMode || verboseMode){ cout << "Socket " << Ssocket  << " successfuly closed"<< endl;}
 }
 void UDPServer::terminateServer( int signum ){
-    cout << "Interrupt signal (" << signum << ") received." << endl;
+    cout << "\nInterrupt signal (" << signum << ") received." << endl;
 
     closeSocket();
     exit(signum);

@@ -77,9 +77,15 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
+    if(debugMode||verboseMode){
+        cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
+    }
 }
 
 void UDPClient::run(){
+    if(debugMode||verboseMode){
+        cout << "Client is running..." << endl;
+    }
     signal(SIGINT, terminateClient );
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -238,6 +244,10 @@ void UDPClient::Receive(){
     }
 }
 
+void UDPClient::save(string filename){
+    receivedData.toFile(filename);
+}
+
 void UDPClient::closeSocket(){
     if( close(Ssocket) == -1 ){
         perror("Socket Closing Error: ");
@@ -246,7 +256,7 @@ void UDPClient::closeSocket(){
 }
 void UDPClient::terminateClient(int signum){
     //used to terminate client via ctrl c
-    cout << "Interrupt signal (" << signum << ") received." << endl;
+    cout << "\nInterrupt signal (" << signum << ") received." << endl;
     closeSocket();
     exit(signum );
 }

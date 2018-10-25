@@ -44,8 +44,8 @@ class UDPClient{
         static bool verboseMode;
         UDPClient(string ip, int port);
         UDPClient(string ip, int port, unsigned int bufferLen);
-        void echo();
-        void save();
+        //void echo();
+        void save(string filename);
         void run();
         static void terminateClient(int signum);
     private:
