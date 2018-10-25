@@ -23,11 +23,13 @@
 #include <signal.h>
 
 #include "UDPServer.hpp"
+#include "UDPDataBlock.hpp"
 
 using namespace std;
 
 bool UDPServer::DebugMode = false;
 bool UDPServer::verboseMode = false;
+int UDPServer::Ssocket;
 
 UDPServer::UDPServer(string filename){
     BufferLength = 512;
@@ -40,7 +42,7 @@ UDPServer::UDPServer(string filename){
         exit(1);
     }
     FileToServer = filename;
-    Clients = vector<struct OpenConnections>();
+    Clients = vector<Connections>();
     TimeInterval.tv_usec = 500;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
@@ -71,7 +73,7 @@ UDPServer::UDPServer(string filename, int port){
         exit(1);
     }
     FileToServer = filename;
-    Clients = vector<struct OpenConnections>();
+    Clients = vector<Connections>();
     TimeInterval.tv_usec = 500;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
@@ -112,7 +114,7 @@ void UDPServer::run(){
         else if(selRet == 0){
             //timeout
             double duration;
-            vector<struct OpenConnections>::iterator itr;
+            vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
                 duration = (clock() - itr->lastSent) / (double) CLOCKS_PER_SEC;
                 if(duration > 90){//checks if this connection excessed wait time
@@ -131,7 +133,7 @@ void UDPServer::run(){
             Receive();
             struct DataBlock packet;
             bool newConnection = true;
-            vector<struct OpenConnections>::iterator itr;
+            vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
                 if(client_addr.sin_addr.s_addr  == itr->address.sin_addr.s_addr ){
                     newConnection = false;
@@ -151,9 +153,11 @@ void UDPServer::run(){
                             Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
                             itr->lastSent = clock();
                         }else{
-                            struct DataBlock resend;
+                            UDPDataBlock resend;
                             resend.index = itr->toSend.size();
-                            resend.data = string('\0',itr->PacketLength - 13);
+                            char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
+                            memset(temp,'\0',(itr->PacketLength - 13));
+                            resend.data =  temp;
                             resend.Ack = true;
                             resend.handshake = true;
                             resend.terminate = false;
@@ -170,7 +174,7 @@ void UDPServer::run(){
             if(newConnection){
                 packet = UDPData::fromUDP(Buffer,BufferLength);
                 //add to active list
-                struct OpenConnections n;
+                Connections n;
                 n.PacketLength = packet.index;
                 n.position = 0;
                 n.address = client_addr;
@@ -178,7 +182,10 @@ void UDPServer::run(){
                 n.tries = 0;
                 n.toSend = UDPData(packet.index);
                 n.toSend.parseFile(FileToServer);
-                packet.data = string('\0', n.PacketLength - 13);
+                char* temp;
+                memset(temp, '\n',n.PacketLength -13 );
+                packet.data = temp;
+                //packet.data = string('\0', n.PacketLength - 13);
                 packet.index = n.toSend.size();
                 packet.Ack = true;
                 packet.handshake = true;

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-struct DataBlock{
+typedef struct DataBlock{
     //DateBlock stores the block index and data that is to be transmitted with UDP
     //Each block is set at 512 bytes by default
     string data; // UDP playload
@@ -21,25 +21,25 @@ struct DataBlock{
     bool Ack; //used to determine if packet is a acknolagment packet
     bool handshake; //used when establishing a connection with a new client
     bool terminate; //used to tell the server or client of termination request
-};
+}UDPDataBlock; 
 
 class UDPData{
 
     private:
         unsigned int BlockLength; // This is the length of each block
-        vector<struct DataBlock> Blocks; //This is where all data that is either recevied or to be sent are stored
+        vector<UDPDataBlock> Blocks; //This is where all data that is either recevied or to be sent are stored
     public:
         UDPData(); //default
-        UDPData(unsigned int blockLength);//sets the size of each block
-        UDPData(unsigned int blockLength, int size); //sets the size of each block and amount of blocks to store
+        UDPData(unsigned int blen);//sets the size of each block
+        UDPData(unsigned int blen, int size); //sets the size of each block and amount of blocks to store
         void parseFile(string filename);// converts a file to a chain of Blocks
         void toFile(string filename); // converts the chain of block to a file
         void append(string data);//add a block to the end of the chain
-        struct DataBlock& operator[](int index); //returns a block at position index
+        UDPDataBlock& operator[](int index); //returns a block at position index
         int size(); // returns the total length of the chain
         unsigned int getBlockSize();
-        static string toUDP( struct DataBlock Block); //converts a dataBlock to a UDP Payload
-        static struct DataBlock fromUDP(string block, int size); //convers a UDP playload to dataBlock
+        static string toUDP( UDPDataBlock Block); //converts a dataBlock to a UDP Payload
+        static UDPDataBlock fromUDP(string block, int size); //convers a UDP playload to dataBlock
         void resizeTo(int nlen); //expand the chain to length nlen
 
 };

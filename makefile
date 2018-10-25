@@ -1,7 +1,7 @@
 all: serverDriver clientDriver
 
 clientDriver: cdriver client datablock
-	g++ clientdriver.o UDPClient.o -o client
+	g++ clientdriver.o UDPClient.o UDPDataBlock.o -o client
 
 cdriver: clientdriver.cpp
 	g++ -c clientdriver.cpp
@@ -11,7 +11,7 @@ client: UDPClient.cpp UDPClient.hpp
 
 
 serverDriver: sdriver server datablock
-	g++ serverdriver.o UDPServer.o -o server
+	g++ serverdriver.o UDPServer.o UDPDataBlock.o -o server
 
 sdriver: serverdriver.cpp
 	g++ -c serverdriver.cpp

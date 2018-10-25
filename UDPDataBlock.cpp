@@ -8,29 +8,31 @@
 #include <string>
 #include <vector>
 #include <stdlib.h>
+#include <string.h>
 #include <iostream>
-#include <unordered_map>
 #include <fstream>
+#include <sstream>
 #include "UDPDataBlock.hpp"
 
 using namespace std;
+
 UDPData::UDPData(){
     BlockLength = 508;//508 maximum number of character or bytes per block
-    Blocks = vector<struct DataBlock>();
+    Blocks = vector<UDPDataBlock>();
 }
 
 UDPData::UDPData(unsigned int blocklength){
-    BlockLength = blockLength;
-    Blocks = vector<struct DataBlock>();
+    BlockLength = blocklength;
+    Blocks = vector<UDPDataBlock>();
 }
 UDPData::UDPData(unsigned int blockLength, int size){
     BlockLength = blockLength;
-    Blocks = vector<struct DataBlock>();
+    Blocks = vector<UDPDataBlock>();
     resizeTo(size);
 }
 
 void UDPData::parseFile(string filename){
-    ofstream datafile;
+    ifstream datafile;
     datafile.open(filename, ios::in | ios::binary);
     if(!datafile.is_open()){
         cout << "File failed to open" << endl;
@@ -51,10 +53,10 @@ void UDPData::parseFile(string filename){
 }
 void UDPData::toFile(string filename){
 
-    ifstream outfile;
+    ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
-        outfile.write(Blocks[i].data, Blocks[i].data.size());
+        outfile.write( Blocks[i].data.c_str(), Blocks[i].data.size());
     }
     outfile.close();
 }
@@ -70,7 +72,7 @@ void UDPData::append(string data){
         }
     }
 
-    struct DataBlock nBlock;
+    UDPDataBlock nBlock;
     nBlock.data = data;
     nBlock.index = Blocks.size();
     nBlock.Ack = false;
@@ -80,7 +82,7 @@ void UDPData::append(string data){
     Blocks.push_back(nBlock);
 }
 
-struct DataBlock& UDPData::operator[](int index){
+UDPDataBlock& UDPData::operator[](int index){
     if(index >= Blocks.size() || index < 0){
         cout << "Array index out of bound!" << endl;
         exit(0);
@@ -106,25 +108,27 @@ string UDPData::toUDP(struct DataBlock Block){
     }else{
         dString.push_back('0');
     }
-    string sIndex = atoi(Block.index);
+    stringstream hold;
+    hold << Block.index;
+    string sIndex = hold.str();
     if(sIndex.size() < 10){
         int dif = 10 - sIndex.size();
         sIndex = string('0',dif) + sIndex;
     }
-    dString.push_back( sIndex);
-    dString.push_back( Block.data);
+    dString.append( sIndex);
+    dString.append( Block.data);
     return dString;
 }
 
-struct DataBlock UDPData::fromUDP(string block, int size){
+UDPDataBlock UDPData::fromUDP(string block, int size){
     //Preconditions: assumes the receivers block vector is the same length as the senders
     
-    struct DataBlock incomming;
+    UDPDataBlock incomming;
     incomming.terminate = (bool)(block[0] - '0');
     incomming.Ack = (bool)(block[1] - '0');
     incomming.handshake = (bool)(block[2] - '0');
-    incomming.index = stoi( block.substring(3,13) );
-    incomming.data = block.substring(14,size);
+    incomming.index = stoi( block.substr(3,13) );
+    incomming.data = block.substr(14,size);
     return incomming;
 }
 
@@ -137,7 +141,7 @@ unsigned int UDPData::getBlockSize(){
 }
 
 void UDPData::resizeTo(int nLen){
-    struct DataBlock blank;
+    UDPDataBlock blank;
     blank.index = 0;
     blank.data = "";
     blank.Ack = false;

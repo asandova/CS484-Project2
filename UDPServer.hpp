@@ -20,7 +20,7 @@
 
 using namespace std;
 
-struct OpenConnections{
+typedef struct OpenConnections{
     int PacketLength;
     int position;
     struct sockaddr_in address;
@@ -28,7 +28,7 @@ struct OpenConnections{
     struct UDPData toSend;
     clock_t lastSent;
     int tries;
-};
+} Connections;
 
 class UDPServer{
 
@@ -43,7 +43,7 @@ class UDPServer{
         string Buffer;
         struct timeval TimeInterval;
         socklen_t Slength;
-        vector<struct OpenConnections> Clients;
+        vector<Connections> Clients;
 
         struct sockaddr_in my_addr;
         struct sockaddr_in client_addr;

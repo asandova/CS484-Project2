@@ -16,11 +16,13 @@
 #include <signal.h>
 
 #include "UDPClient.hpp"
+#include "UDPDataBlock.hpp"
 
 using namespace std;
 
 bool UDPClient::DebugMode = false;
 bool UDPClient::verboseMode = false;
+int UDPClient::Ssocket;
 
 UDPClient::UDPClient(string ip, int port){
     BufferLength = 512;
@@ -50,7 +52,7 @@ UDPClient::UDPClient(string ip, int port){
 
 }
 
-UDPClient(string ip, int port, int bufferLen){
+UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
     BufferLength = bufferLen;
     Port = port;
     Buffer = string();
@@ -79,24 +81,32 @@ UDPClient(string ip, int port, int bufferLen){
 
 void UDPClient::run(){
     signal(SIGINT, terminateClient );
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(Ssocket, &rfds);
+    char* temp;
+
     unsigned int position = 0;
     unsigned int totalPackets = numeric_limits<unsigned int>::max(); 
     struct DataBlock packet;
 
     //constructing connection request
-    packet.data = string('\0',512-13);
-    packet.index = bufferLength;
+    temp = (char*) malloc( 510 * sizeof(char) );
+    memset(temp, '\0', 509);
+    packet.data = temp;
+    temp = nullptr;
+    packet.index = BufferLength;
     packet.Ack = false;
     packet.handshake = true;
     packet.terminate = false;
     //sending connction request
-    send( UDPData::toUDP(packet));
+    Send( UDPData::toUDP(packet));
     lastSent = clock();
 
     //handshake loop
     while(position < totalPackets){
         //checking for incomming packets
-        int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
+        int selRet = select(Ssocket+1, &rfds, NULL,NULL, &waitTime);
         if(tries > 5){
             cout << "failed to connect to server.\nExiting.." << endl; 
             break;
@@ -117,7 +127,7 @@ void UDPClient::run(){
             double duration;
             duration = (clock() - lastSent) / (double) CLOCKS_PER_SEC;
             if(duration > 90){
-                send( UDPData::toUDP(packet));
+                Send( UDPData::toUDP(packet));
                 lastSent = clock();
                 tries++;
             }
@@ -132,24 +142,28 @@ void UDPClient::run(){
                 if(packet.Ack){
                     //sending clients second handshake packet
                     //sending the server ack for expected file length
-                    receivedData = UDPData(bufferLength, packet.Index );
-                    totalPackets = packet.Index;
-                    packet.data = string('\0',bufferLenght-13);
+                    receivedData = UDPData(BufferLength, packet.index );
+                    totalPackets = packet.index;
+                    temp = (char*) malloc( BufferLength-13+1 * sizeof(char) );
+                    memset(temp, '\0', BufferLength-13);
+                    packet.data = temp;
                     packet.index = 0;
                     packet.Ack = true;
                     packet.handshake = true;
                     packet.terminate = false;
-                    send( UDPData::toUDP(packet));
+                    Send( UDPData::toUDP(packet));
                     tries= 0;
                     lastSent = clock();
                 }else{
                     //resending start connection packet
-                    packet.data = string('\0',512-13);
-                    packet.index = bufferLength;
+                    temp = (char*) malloc( 510 * sizeof(char) );
+                    memset(temp, '\0', 509);
+                    packet.data = temp;
+                    packet.index = BufferLength;
                     packet.Ack = false;
                     packet.handshake = true;
                     packet.terminate = false;
-                    send( UDPData::toUDP(packet));
+                    Send( UDPData::toUDP(packet) );
                     tries++;
                     lastSent = clock();
                 }
@@ -158,11 +172,11 @@ void UDPClient::run(){
                 //receive data packet
                 packet = UDPData::fromUDP(Buffer, BufferLength);
                 if(packet.index == position){
-                    receivedData[packet.position] = packet;
+                    receivedData[packet.index] = packet;
                     position++;
 
                 }
-                packet.data = string("\0",bufferLenght-13);
+                packet.data = string("\0",BufferLength-13);
                 packet.Ack = true;
                 packet.handshake = false;
                 packet.terminate = false;
@@ -173,7 +187,7 @@ void UDPClient::run(){
     }
     closeSocket();
 }
-
+/*
 void UDPClient::echo(){
     int close = 0;
     int counter = 0;
@@ -191,7 +205,7 @@ void UDPClient::echo(){
         exit(1);
     }
     closeSocket();
-}
+}*/
 
 void UDPClient::Send(string data){
 
@@ -202,13 +216,12 @@ void UDPClient::Send(string data){
         perror("sendto");
         exit(1);
     }
-
 }
 
 void UDPClient::Receive(){
 
     if(debugMode || verboseMode) {cout << "Receiving..." << endl;}
-    char* buf = Buffer;
+    char* buf = &Buffer[0];
     memset(buf, '\0', BufferLength);
     if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,MSG_WAITALL,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
             perror("revfrom()");
@@ -231,8 +244,9 @@ void UDPClient::closeSocket(){
         exit(1);
     }
 }
-void UDPClient::terminateClient(){
+void UDPClient::terminateClient(int signum){
     //used to terminate client via ctrl c
+    cout << "Interrupt signal (" << signum << ") received." << endl;
     closeSocket();
-    exit(1);
+    exit(signum );
 }

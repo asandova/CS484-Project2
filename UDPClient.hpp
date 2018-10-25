@@ -25,12 +25,12 @@ class UDPClient{
     private:
         bool debugMode;
         string ServerAddress;
-        int BufferLength;
+        unsigned int BufferLength;
         int ReceiveLength;
         time_t lastSent;
         int tries;
         int Port;
-        int Ssocket;
+        static int Ssocket;
         string Buffer;
         struct UDPData receivedData;
         socklen_t Slength;
@@ -43,14 +43,15 @@ class UDPClient{
         static bool DebugMode;
         static bool verboseMode;
         UDPClient(string ip, int port);
-        UDPClient(string ip, int port, int bufferLen);
+        UDPClient(string ip, int port, unsigned int bufferLen);
         void echo();
         void save();
-        void terminateClient();
+        void run();
+        static void terminateClient(int signum);
     private:
         void Send(string data);
         void Receive();
-        void closeSocket();
+        static void closeSocket();
 
 };
 #endif //UDPCLIENT_HPP
