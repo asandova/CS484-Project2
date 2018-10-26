@@ -182,7 +182,7 @@ void UDPServer::run(){
                             UDPDataBlock resend;
                             resend.index = itr->toSend.size();
                             char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
-                            memset(temp,'\0',(itr->PacketLength - 13));
+                            memset(temp,'0',(itr->PacketLength - 13));
                             resend.data =  temp;
                             resend.Ack = true;
                             resend.handshake = true;
@@ -215,7 +215,7 @@ void UDPServer::run(){
                 n.toSend = UDPData(packet.index);
                 n.toSend.parseFile(FileToServer);
                 char* temp = (char*)malloc( (n.PacketLength-13+1) * sizeof(char));
-                memset(temp, '\n',n.PacketLength -13 );
+                memset(temp, '0',n.PacketLength -13 );
                 packet.data = temp;
                 //packet.data = string('\0', n.PacketLength - 13);
                 packet.index = n.toSend.size();

@@ -32,25 +32,30 @@ UDPData::UDPData(unsigned int blockLength, int size){
 }
 
 void UDPData::parseFile(string filename){
-    cout << "reading file" << endl;
+    cout << "reading file: " << filename << endl;
+    cout << BlockLength << endl;
     ifstream datafile;
-    datafile.open(filename, ios::in | ios::binary);
-    if(!datafile.is_open()){
-        cout << "File failed to open" << endl;
-    }else{
+    datafile.open(filename, ifstream::in | ifstream::binary);
+    if(datafile.is_open()){
         while(!datafile.fail()){
             char C;
             string data = "";
             int count = 0;
             while(count < BlockLength && !datafile.fail()){
                 C = datafile.get();
+                cout << C;
                 data.push_back(C);
                 count++;
+
             }
+            //cout << endl;
+            //cout << data << endl;
             append(data);
         }
         cout << "closing file" << endl;
         datafile.close();
+    }else{
+        cout << "failed to open file" << endl;
     }
 }
 void UDPData::toFile(string filename){
@@ -82,6 +87,7 @@ void UDPData::append(string data){
     nBlock.terminate = false;
 
     Blocks.push_back(nBlock);
+    //cout << "block appended" << endl;
 }
 
 UDPDataBlock& UDPData::operator[](int index){
@@ -92,7 +98,7 @@ UDPDataBlock& UDPData::operator[](int index){
     return Blocks[index];
 }
 
-string UDPData::toUDP(struct DataBlock Block){
+string UDPData::toUDP(UDPDataBlock Block){
     
     string dString = "";
     if(Block.terminate ){

@@ -98,7 +98,7 @@ void UDPClient::run(){
 
     //constructing connection request
     temp = (char*) malloc( 510 * sizeof(char) );
-    memset(temp, '\0', 509);
+    memset(temp, '0', 509);
     packet.data = temp;
     temp = nullptr;
     packet.index = BufferLength;
@@ -154,7 +154,7 @@ void UDPClient::run(){
                     receivedData = UDPData(BufferLength, packet.index );
                     totalPackets = packet.index;
                     temp = (char*) malloc( BufferLength-13+1 * sizeof(char) );
-                    memset(temp, '\0', BufferLength-13);
+                    memset(temp, '0', BufferLength-13);
                     packet.data = temp;
                     packet.index = 0;
                     packet.Ack = true;
@@ -166,7 +166,7 @@ void UDPClient::run(){
                 }else{
                     //resending start connection packet
                     temp = (char*) malloc( 510 * sizeof(char) );
-                    memset(temp, '\0', 509);
+                    memset(temp, '0', 509);
                     packet.data = temp;
                     packet.index = BufferLength;
                     packet.Ack = false;
@@ -185,7 +185,7 @@ void UDPClient::run(){
                     position++;
 
                 }
-                packet.data = string("\0",BufferLength-13);
+                packet.data = string("0",BufferLength-13);
                 packet.Ack = true;
                 packet.handshake = false;
                 packet.terminate = false;
