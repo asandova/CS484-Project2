@@ -222,7 +222,7 @@ void UDPClient::Send(string data){
         cout << "Sending: " << data << endl;
     }
     int sendlen;
-    if(sendlen = sendto(Ssocket, data.c_str() , data.size() , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
+    if(sendlen = sendto(Ssocket, data.c_str() , BufferLength , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
         perror("sendto");
         exit(1);
     }
