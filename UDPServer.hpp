@@ -25,7 +25,7 @@ typedef struct OpenConnections{
     int position;
     struct sockaddr_in address;
     socklen_t Slen;
-    struct UDPData toSend;
+    UDPData toSend;
     clock_t lastSent;
     int tries;
 } Connections;
@@ -37,9 +37,8 @@ class UDPServer{
         int Port;
         static int Ssocket;
         int receiveLength;
-        string FileToServer;
-
-        int BufferLength;//
+        string dataToServe;
+        int BufferLength;
         string Buffer;
         struct timeval TimeInterval;
         socklen_t Slength;
@@ -61,6 +60,8 @@ class UDPServer{
         void Send(string data, struct sockaddr_in client, socklen_t clen);
         void Receive();
         static void closeSocket();
+        void readFile(string filename);
+        void fileToUDP(UDPData &cblocks,int len);
 
 };
 #endif //UDPSERVER_HPP

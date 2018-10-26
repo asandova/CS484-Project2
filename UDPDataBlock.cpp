@@ -43,7 +43,6 @@ void UDPData::parseFile(string filename){
             int count = 0;
             while(count < BlockLength && !datafile.fail()){
                 C = datafile.get();
-                cout << C;
                 data.push_back(C);
                 count++;
 
@@ -123,21 +122,23 @@ string UDPData::toUDP(UDPDataBlock Block){
         int dif = 10 - sIndex.size();
         sIndex = string('0',dif) + sIndex;
     }
-    dString.append( sIndex);
-    dString.append( Block.data);
+    dString = dString + sIndex;
+    dString = dString +  Block.data;
     return dString;
 }
 
 UDPDataBlock UDPData::fromUDP(string block, int size){
-    //Preconditions: assumes the receivers block vector is the same length as the senders
     cout << "converting to Packet" << endl;
     UDPDataBlock incomming;
     incomming.terminate = (bool)(block[0] - '0');
     incomming.Ack = (bool)(block[1] - '0');
     incomming.handshake = (bool)(block[2] - '0');
     istringstream sindex(block.substr(3,13));
+    cout << block.substr(3,13) << endl;
     sindex >> incomming.index;
+    cout << incomming.index << endl;
     incomming.data = block.substr(14,size);
+    cout << "Packet converted" << endl;
     return incomming;
 }
 
