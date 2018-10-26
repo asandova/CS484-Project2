@@ -33,7 +33,6 @@ typedef struct OpenConnections{
 class UDPServer{
 
     private:
-        bool debugMode;
         int Port;
         static int Ssocket;
         int receiveLength;

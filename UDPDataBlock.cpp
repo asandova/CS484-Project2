@@ -134,14 +134,15 @@ string UDPData::toUDP(UDPDataBlock Block){
 UDPDataBlock UDPData::fromUDP(string block, int size){
     cout << "converting to Packet" << endl;
     UDPDataBlock incomming;
+    
     incomming.terminate = (bool)(block[0] - '0');
     incomming.Ack = (bool)(block[1] - '0');
     incomming.handshake = (bool)(block[2] - '0');
-    istringstream sindex(block.substr(3,13));
-    cout << block.substr(3,13) << endl;
+    istringstream sindex(block.substr(3,10));
+    cout << block.substr(3,10) << endl;
     sindex >> incomming.index;
     cout << incomming.index << endl;
-    incomming.data = block.substr(14,size);
+    incomming.data = block.substr(14,size-14);
     cout << "Packet converted" << endl;
     return incomming;
 }

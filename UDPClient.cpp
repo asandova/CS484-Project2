@@ -183,7 +183,6 @@ void UDPClient::run(){
                 if(packet.index == position){
                     receivedData[packet.index] = packet;
                     position++;
-
                 }
                 packet.data = string("0",BufferLength-13);
                 packet.Ack = true;
