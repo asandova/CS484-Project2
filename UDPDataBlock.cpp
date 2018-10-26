@@ -32,6 +32,7 @@ UDPData::UDPData(unsigned int blockLength, int size){
 }
 
 void UDPData::parseFile(string filename){
+    cout << "reading file" << endl;
     ifstream datafile;
     datafile.open(filename, ios::in | ios::binary);
     if(!datafile.is_open()){
@@ -48,11 +49,12 @@ void UDPData::parseFile(string filename){
             }
             append(data);
         }
+        cout << "closing file" << endl;
         datafile.close();
     }
 }
 void UDPData::toFile(string filename){
-
+    cout << "writing to file" << endl;
     ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
@@ -122,12 +124,13 @@ string UDPData::toUDP(struct DataBlock Block){
 
 UDPDataBlock UDPData::fromUDP(string block, int size){
     //Preconditions: assumes the receivers block vector is the same length as the senders
-    
+    cout << "converting to Packet" << endl;
     UDPDataBlock incomming;
     incomming.terminate = (bool)(block[0] - '0');
     incomming.Ack = (bool)(block[1] - '0');
     incomming.handshake = (bool)(block[2] - '0');
-    incomming.index = stoi( block.substr(3,13) );
+    istringstream sindex(block.substr(3,13));
+    sindex >> incomming.index;
     incomming.data = block.substr(14,size);
     return incomming;
 }
@@ -141,6 +144,7 @@ unsigned int UDPData::getBlockSize(){
 }
 
 void UDPData::resizeTo(int nLen){
+    cout << "resizing" << endl;
     UDPDataBlock blank;
     blank.index = 0;
     blank.data = "";

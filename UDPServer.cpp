@@ -154,10 +154,15 @@ void UDPServer::run(){
                     newConnection = false;
                     packet = UDPData::fromUDP(Buffer, itr->PacketLength);
                     if(packet.Ack){
+                        if(debugMode||verboseMode){
+                            cout << "Ack Recevied. ";
+                        }
                         if(packet.index == itr->position){
+                            cout << "Sending next packet" << endl;
                             itr->position++;
                             itr->tries = 0;
                         }else{
+                            cout << "Resending packet" << endl;
                             itr->position = packet.index;
                             itr->tries++;
                         }
@@ -165,9 +170,15 @@ void UDPServer::run(){
                         itr->lastSent = clock();
                     }else if(packet.handshake){
                         if(packet.Ack){
+                            if(debugMode||verboseMode){
+                                cout << "Sending handShale Ack" << endl;
+                            }
                             Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
                             itr->lastSent = clock();
                         }else{
+                            if(debugMode||verboseMode){
+                                cout << "Resending handshake" << endl;
+                            }
                             UDPDataBlock resend;
                             resend.index = itr->toSend.size();
                             char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
@@ -180,6 +191,9 @@ void UDPServer::run(){
                             itr->lastSent = clock();
                         }
                     }else if(packet.terminate){
+                        if(debugMode||verboseMode){
+                            cout << "Termination packet recevied. Termination connection" << endl;
+                        }
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
                         Clients.erase(itr);
                     }
@@ -187,6 +201,9 @@ void UDPServer::run(){
                 }
             }
             if(newConnection){
+                if(debugMode||verboseMode){
+                    cout << "Creating new connection" << endl;
+                }
                 packet = UDPData::fromUDP(Buffer,BufferLength);
                 //add to active list
                 Connections n;
@@ -197,7 +214,7 @@ void UDPServer::run(){
                 n.tries = 0;
                 n.toSend = UDPData(packet.index);
                 n.toSend.parseFile(FileToServer);
-                char* temp;
+                char* temp = (char*)malloc( (n.PacketLength-13+1) * sizeof(char));
                 memset(temp, '\n',n.PacketLength -13 );
                 packet.data = temp;
                 //packet.data = string('\0', n.PacketLength - 13);

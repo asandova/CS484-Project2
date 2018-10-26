@@ -112,6 +112,9 @@ void UDPClient::run(){
     //handshake loop
     while(position < totalPackets){
         //checking for incomming packets
+        if(verboseMode || debugMode){
+            cout << "waiting for responce." << endl;
+        }
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &waitTime);
         if(tries > 5){
             cout << "failed to connect to server.\nExiting.." << endl; 
@@ -218,9 +221,13 @@ void UDPClient::Send(string data){
     if(debugMode || verboseMode){
         cout << "Sending: " << data << endl;
     }
-    if(sendto(Ssocket, data.c_str() , data.size() , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
+    int sendlen;
+    if(sendlen = sendto(Ssocket, data.c_str() , data.size() , 0, (struct sockaddr * ) &server_addr, Slength ) == -1){
         perror("sendto");
         exit(1);
+    }
+    if(debugMode || verboseMode){
+        cout << "sent length: " << sendlen << endl;
     }
 }
 
