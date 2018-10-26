@@ -35,13 +35,8 @@ UDPServer::UDPServer(string filename){
     BufferLength = 512;
     Port = 65535;
     Buffer = string();
-    Buffer.resize(BufferLength, '\0');
-    ifstream check(filename);
-    if(!check.good()){
-        cout << "Error: File " << filename << " does not exist!\nTerminating Server" << endl;
-        exit(1);
-    }
-    FileToServer = filename;
+    Buffer.resize(BufferLength, '0');
+    readFile(filename);
     Clients = vector<Connections>();
     TimeInterval.tv_usec = 500;
 
@@ -61,7 +56,7 @@ UDPServer::UDPServer(string filename){
         perror("bind");
         exit(1);
     }
-    if(debugMode||verboseMode){
+    if(DebugMode||verboseMode){
         cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
     }
 }
@@ -69,13 +64,10 @@ UDPServer::UDPServer(string filename, int port){
     BufferLength = 512;
     Port = port;
     Buffer = string();
-    Buffer.resize(BufferLength, '\0');
-    ifstream check(filename);
-    if(!check.good()){
-        cout << "Error: File " << filename << " does not exist!\nTerminating Server" << endl;
-        exit(1);
-    }
-    FileToServer = filename;
+    Buffer.resize(BufferLength, '0');
+    
+    readFile(filename);
+
     Clients = vector<Connections>();
     TimeInterval.tv_usec = 500;
 
@@ -95,7 +87,7 @@ UDPServer::UDPServer(string filename, int port){
         perror("bind");
         exit(1);
     }
-    if(debugMode||verboseMode){
+    if(DebugMode||verboseMode){
         cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
     }
     
@@ -111,6 +103,9 @@ void UDPServer::run(){
     int running = 1;
     while(running){
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
+        if(debugMode||verboseMode){
+            cout << "selRet value: " << selRet << endl;
+        }
         if(selRet == -1){
             //error
             perror("bind");
@@ -145,8 +140,11 @@ void UDPServer::run(){
                 }
             }
         }else{
+            if(debugMode||verboseMode){
+                cout << "Receving data" << endl;
+            }
             Receive();
-            struct DataBlock packet;
+            UDPDataBlock packet;
             bool newConnection = true;
             vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
@@ -212,17 +210,19 @@ void UDPServer::run(){
                 n.address = client_addr;
                 n.Slen = sizeof(client_addr);
                 n.tries = 0;
-                n.toSend = UDPData(packet.index);
-                n.toSend.parseFile(FileToServer);
+                fileToUDP(n.toSend, n.PacketLength);
                 char* temp = (char*)malloc( (n.PacketLength-13+1) * sizeof(char));
                 memset(temp, '0',n.PacketLength -13 );
                 packet.data = temp;
-                //packet.data = string('\0', n.PacketLength - 13);
                 packet.index = n.toSend.size();
                 packet.Ack = true;
                 packet.handshake = true;
                 packet.terminate = false;
                 Send( UDPData::toUDP(packet),n.address, n.Slen );
+                Clients.push_back(n);
+                if(DebugMode||verboseMode){
+                    cout << "new client added" << endl;
+                }
             }
         }
         //clear client_addr
@@ -249,16 +249,20 @@ void UDPServer::Receive(){
         Receives incoming UDP data from socket
     */
     if(DebugMode || verboseMode) {cout << "Receiving..." << endl;}
+    int receiveLength;
     char* buf = &Buffer[0];
-    memset(buf, '\0', BufferLength);
+    memset(buf, '0', BufferLength);
+    cout << Buffer << endl;
     if( ( receiveLength = recvfrom(Ssocket, buf, BufferLength, 0, (struct sockaddr *) &client_addr, &Slength ) ) == -1 ){
         perror("recvfrom()");
         close(Ssocket);
         exit(1);
     }
-    Buffer = buf;
+    //Buffer = buf;
+    cout << Buffer << endl;
     if(DebugMode || verboseMode){
         cout << "ReceivedLength: " << receiveLength << endl;
+        cout << "Buffer Length: " << Buffer.size() << " | " << BufferLength << endl;
         cout << "Received packet from " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
         cout << "Data: " << Buffer << endl;
     }
@@ -297,4 +301,44 @@ void UDPServer::terminateServer( int signum ){
 
     closeSocket();
     exit(signum);
+}
+
+void UDPServer::readFile(string filename){
+    cout << "reading file: " << filename << endl;
+    ifstream datafile;
+    datafile.open(filename, ifstream::in | ifstream::binary);
+    if(datafile.is_open()){
+        char C;
+        string data = "";
+        while(!datafile.fail()){
+                C = datafile.get();
+                data.push_back(C);
+        }
+        cout << "closing file" << endl;
+        dataToServe = data;
+        //cout << dataToServe << endl;
+        datafile.close();
+    }else{
+        cout << "failed to open file" << endl;
+    }
+}
+
+void UDPServer::fileToUDP(UDPData &cBlocks,int len){
+    cout << "in fileToUDP" << endl;
+    string temp = dataToServe;
+    cout << temp.size() << endl;
+    cout << len << endl;
+    cout << temp.size() % len << endl;
+    int dif = (int)(temp.size() % len);
+    if(DebugMode || verboseMode){
+        cout << "Dif: " << dif << endl;
+        cout << len << endl;
+    }
+    if( dif != 0){
+        temp = temp + string('0',len - dif);
+    }
+    for(int i = 1; i < temp.size(); i *= len){
+        cout << "i: " << i << "  i+len-1: " << i+len-1 << endl;
+        cBlocks.append( temp.substr(i-1, i + len-1) );
+    }
 }
