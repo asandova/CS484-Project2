@@ -93,7 +93,7 @@ UDPServer::UDPServer(string filename, int port){
     
 }
 void UDPServer::run(){
-    if(debugMode||verboseMode){
+    if(DebugMode||verboseMode){
         cout << "Server is running..." << endl;
     }
     signal(SIGINT, terminateServer);
@@ -102,8 +102,9 @@ void UDPServer::run(){
     FD_SET(Ssocket, &rfds);
     int running = 1;
     while(running){
+        TimeInterval.tv_usec = 100;
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
-        if(debugMode||verboseMode){
+        if(DebugMode||verboseMode){
             cout << "selRet value: " << selRet << endl;
         }
         if(selRet == -1){
@@ -114,7 +115,7 @@ void UDPServer::run(){
         }
         else if(selRet == 0){
             //timeout
-            if(debugMode||verboseMode){
+            if(DebugMode||verboseMode){
                 cout << "Timeout occured..." << endl;
             }
             double duration;
@@ -127,12 +128,12 @@ void UDPServer::run(){
                         itr->tries++;
                         Send( UDPData::toUDP( itr->toSend[itr->position] ) , itr->address, itr->Slen );
                         itr->lastSent = clock();
-                        if(debugMode||verboseMode){
+                        if(DebugMode||verboseMode){
                             cout << "Resending to: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
                     }else{
                         //terminate connection after five timeouts
-                        if(debugMode||verboseMode){
+                        if(DebugMode||verboseMode){
                             cout << "Removing Client: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
                         Clients.erase(itr);
@@ -140,7 +141,7 @@ void UDPServer::run(){
                 }
             }
         }else{
-            if(debugMode||verboseMode){
+            if(DebugMode||verboseMode){
                 cout << "Receving data" << endl;
             }
             Receive();
@@ -152,7 +153,7 @@ void UDPServer::run(){
                     newConnection = false;
                     packet = UDPData::fromUDP(Buffer, itr->PacketLength);
                     if(packet.Ack){
-                        if(debugMode||verboseMode){
+                        if(DebugMode||verboseMode){
                             cout << "Ack Recevied. ";
                         }
                         if(packet.index == itr->position){
@@ -168,13 +169,13 @@ void UDPServer::run(){
                         itr->lastSent = clock();
                     }else if(packet.handshake){
                         if(packet.Ack){
-                            if(debugMode||verboseMode){
+                            if(DebugMode||verboseMode){
                                 cout << "Sending handShale Ack" << endl;
                             }
                             Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
                             itr->lastSent = clock();
                         }else{
-                            if(debugMode||verboseMode){
+                            if(DebugMode||verboseMode){
                                 cout << "Resending handshake" << endl;
                             }
                             UDPDataBlock resend;
@@ -189,7 +190,7 @@ void UDPServer::run(){
                             itr->lastSent = clock();
                         }
                     }else if(packet.terminate){
-                        if(debugMode||verboseMode){
+                        if(DebugMode||verboseMode){
                             cout << "Termination packet recevied. Termination connection" << endl;
                         }
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
@@ -199,7 +200,7 @@ void UDPServer::run(){
                 }
             }
             if(newConnection){
-                if(debugMode||verboseMode){
+                if(DebugMode||verboseMode){
                     cout << "Creating new connection" << endl;
                 }
                 packet = UDPData::fromUDP(Buffer,BufferLength);
@@ -337,8 +338,7 @@ void UDPServer::fileToUDP(UDPData &cBlocks,int len){
     if( dif != 0){
         temp = temp + string('0',len - dif);
     }
-    for(int i = 1; i < temp.size(); i *= len){
-        cout << "i: " << i << "  i+len-1: " << i+len-1 << endl;
-        cBlocks.append( temp.substr(i-1, i + len-1) );
+    for(int i = 0; i < temp.size(); i++){
+        cBlocks.append( temp.substr(i * len-13, len-13) );
     }
 }
