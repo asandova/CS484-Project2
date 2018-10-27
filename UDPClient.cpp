@@ -32,7 +32,8 @@ UDPClient::UDPClient(string ip, int port){
 
     Slength = sizeof(server_addr);
 
-    waitTime.tv_usec = 20;
+    waitTime.tv_sec = 0;
+    waitTime.tv_usec = 500000;
     tries = 0;
 
     bzero(&server_addr,sizeof(server_addr));
@@ -60,7 +61,8 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
 
     Slength = sizeof(server_addr);
 
-    waitTime.tv_usec = 20;
+    waitTime.tv_sec = 0;
+    waitTime.tv_usec = 500000;
     tries = 0;
 
     bzero(&server_addr,sizeof(server_addr));
@@ -89,7 +91,6 @@ void UDPClient::run(){
     signal(SIGINT, terminateClient );
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(Ssocket, &rfds);
     char* temp;
 
     unsigned int position = 0;
@@ -111,6 +112,7 @@ void UDPClient::run(){
 
     //handshake loop
     while(position < totalPackets){
+        FD_SET(Ssocket, &rfds);
         //checking for incomming packets
         if(verboseMode || debugMode){
             cout << "waiting for responce." << endl;

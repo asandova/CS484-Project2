@@ -39,7 +39,7 @@ UDPServer::UDPServer(string filename){
     readFile(filename);
     Clients = vector<Connections>();
     TimeInterval.tv_sec = 0;
-    TimeInterval.tv_usec = 1000;
+    TimeInterval.tv_usec = 500000;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
@@ -71,7 +71,7 @@ UDPServer::UDPServer(string filename, int port){
 
     Clients = vector<Connections>();
     TimeInterval.tv_sec = 0;
-    TimeInterval.tv_usec = 1000;
+    TimeInterval.tv_usec = 500000;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
