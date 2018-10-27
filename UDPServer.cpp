@@ -38,7 +38,8 @@ UDPServer::UDPServer(string filename){
     Buffer.resize(BufferLength, '0');
     readFile(filename);
     Clients = vector<Connections>();
-    TimeInterval.tv_usec = 500;
+    TimeInterval.tv_sec = 0;
+    TimeInterval.tv_usec = 1000;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
@@ -69,7 +70,8 @@ UDPServer::UDPServer(string filename, int port){
     readFile(filename);
 
     Clients = vector<Connections>();
-    TimeInterval.tv_usec = 500;
+    TimeInterval.tv_sec = 0;
+    TimeInterval.tv_usec = 1000;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
@@ -95,14 +97,18 @@ UDPServer::UDPServer(string filename, int port){
 void UDPServer::run(){
     if(DebugMode||verboseMode){
         cout << "Server is running..." << endl;
+        cout << "client address: " << inet_ntoa(client_addr.sin_addr)  << ":" << ntohs(client_addr.sin_port) << endl;
     }
     signal(SIGINT, terminateServer);
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(Ssocket, &rfds);
+    
     int running = 1;
     while(running){
-        TimeInterval.tv_usec = 100;
+        FD_SET(Ssocket, &rfds);
+        TimeInterval.tv_sec = 0;
+        TimeInterval.tv_usec = 500000;
+        cout << "calling select" << endl;
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
         if(DebugMode||verboseMode){
             cout << "selRet value: " << selRet << endl;
@@ -209,8 +215,10 @@ void UDPServer::run(){
                 n.PacketLength = packet.index;
                 n.position = 0;
                 n.address = client_addr;
+                n.address.sin_family = AF_INET;
                 n.Slen = sizeof(client_addr);
                 n.tries = 0;
+                n.toSend = UDPData(packet.index);
                 fileToUDP(n.toSend, n.PacketLength);
                 char* temp = (char*)malloc( (n.PacketLength-13+1) * sizeof(char));
                 memset(temp, '0',n.PacketLength -13 );
@@ -220,6 +228,7 @@ void UDPServer::run(){
                 packet.handshake = true;
                 packet.terminate = false;
                 Send( UDPData::toUDP(packet),n.address, n.Slen );
+                n.lastSent = clock();
                 Clients.push_back(n);
                 if(DebugMode||verboseMode){
                     cout << "new client added" << endl;
@@ -227,6 +236,7 @@ void UDPServer::run(){
             }
         }
         //clear client_addr
+        //memset(&client_addr, 0, sizeof(sockaddr_in));
     }
 }
 /*
@@ -253,14 +263,12 @@ void UDPServer::Receive(){
     int receiveLength;
     char* buf = &Buffer[0];
     memset(buf, '0', BufferLength);
-    cout << Buffer << endl;
     if( ( receiveLength = recvfrom(Ssocket, buf, BufferLength, 0, (struct sockaddr *) &client_addr, &Slength ) ) == -1 ){
         perror("recvfrom()");
         close(Ssocket);
         exit(1);
     }
     //Buffer = buf;
-    cout << Buffer << endl;
     if(DebugMode || verboseMode){
         cout << "ReceivedLength: " << receiveLength << endl;
         cout << "Buffer Length: " << Buffer.size() << " | " << BufferLength << endl;
@@ -274,7 +282,8 @@ void UDPServer::Send(string data, struct sockaddr_in client, socklen_t Clen){
         Send data to desired address
     */
    if(DebugMode || verboseMode){
-        cout << "Sending..." << endl;
+        cout << "Sending to client: " << inet_ntoa(client.sin_addr)  << ":" << ntohs(client.sin_port) << endl;
+        cout << "DataLength:" << data.size() << endl;
         cout << "Data:" << data << endl;
     }
     int sentlength;
@@ -315,6 +324,7 @@ void UDPServer::readFile(string filename){
                 C = datafile.get();
                 data.push_back(C);
         }
+        data.pop_back();
         cout << "closing file" << endl;
         dataToServe = data;
         //cout << dataToServe << endl;
@@ -326,19 +336,22 @@ void UDPServer::readFile(string filename){
 
 void UDPServer::fileToUDP(UDPData &cBlocks,int len){
     cout << "in fileToUDP" << endl;
+    int dataLen = len-13;
     string temp = dataToServe;
-    cout << temp.size() << endl;
-    cout << len << endl;
-    cout << temp.size() % len << endl;
-    int dif = (int)(temp.size() % len);
+    int remdr = (int)(temp.size() % dataLen);
     if(DebugMode || verboseMode){
-        cout << "Dif: " << dif << endl;
+        cout << "Remainder: " << remdr << endl;
         cout << len << endl;
     }
-    if( dif != 0){
-        temp = temp + string('0',len - dif);
+    if( remdr != 0){
+        int dif = len - remdr;
+        for(int i = 0; i < dif; i++){
+            temp.push_back('0');
+        }
     }
-    for(int i = 0; i < temp.size(); i++){
-        cBlocks.append( temp.substr(i * len-13, len-13) );
+    int div = temp.size() / dataLen;
+    for(int i = 0; i < div ; i++){
+        int start = i * dataLen;
+        cBlocks.append( temp.substr(start,dataLen ) );
     }
 }

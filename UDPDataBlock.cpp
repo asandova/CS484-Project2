@@ -17,7 +17,7 @@
 using namespace std;
 
 UDPData::UDPData(){
-    BlockLength = 508;//508 maximum number of character or bytes per block
+    BlockLength = 499;
     Blocks = vector<UDPDataBlock>();
 }
 
@@ -69,6 +69,7 @@ void UDPData::toFile(string filename){
 
 void UDPData::append(string data){
     if(data.length() > BlockLength - 13){
+        cout << BlockLength -13 << endl;
         cout << "entered data is too large for current size" << endl;
     }
     else if(data.length() < BlockLength){

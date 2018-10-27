@@ -32,7 +32,7 @@ UDPClient::UDPClient(string ip, int port){
 
     Slength = sizeof(server_addr);
 
-    waitTime.tv_usec = 500;
+    waitTime.tv_usec = 20;
     tries = 0;
 
     bzero(&server_addr,sizeof(server_addr));
@@ -60,7 +60,7 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
 
     Slength = sizeof(server_addr);
 
-    waitTime.tv_usec = 500;
+    waitTime.tv_usec = 20;
     tries = 0;
 
     bzero(&server_addr,sizeof(server_addr));
