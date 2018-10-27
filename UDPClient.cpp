@@ -113,17 +113,13 @@ void UDPClient::run(){
     //handshake loop
     while(position < totalPackets){
         waitTime.tv_sec = 0;
-        waitTime.tv_usec = 500000;
+        waitTime.tv_usec = 5000;
         FD_SET(Ssocket, &rfds);
         //checking for incomming packets
         if(verboseMode || debugMode){
             cout << "waiting for responce." << endl;
         }
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &waitTime);
-        if(tries > 5){
-            cout << "failed to connect to server.\nExiting.." << endl; 
-            break;
-        }
         if(selRet == -1){
             //error
             perror("bind");
@@ -142,7 +138,7 @@ void UDPClient::run(){
             }
             double duration;
             duration = (clock() - lastSent) / (double) CLOCKS_PER_SEC;
-            if(duration > 90){
+            if(duration > 1){
                 Send( UDPData::toUDP(packet));
                 lastSent = clock();
                 tries++;
@@ -226,6 +222,8 @@ void UDPClient::Send(string data){
 
     if(debugMode || verboseMode){
         cout << "Sending: " << data << endl;
+        cout << "DataLength:" << data.size() << endl;
+        cout << "Data:" << data << endl;
     }
     int sendlen;
     if( (sendlen = sendto(Ssocket, data.c_str() , BufferLength, 0, (struct sockaddr * ) &server_addr, Slength )) == -1){
@@ -241,19 +239,16 @@ void UDPClient::Receive(){
 
     if(debugMode || verboseMode) {cout << "Receiving..." << endl;}
     char* buf = &Buffer[0];
-    memset(buf, '\0', BufferLength);
+    memset(buf, '0', BufferLength);
     if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,MSG_WAITALL,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
             perror("revfrom()");
+            close(Ssocket);
             exit(1);
     }
     if(debugMode || verboseMode){
         cout << "ReceivedLength: " << ReceiveLength << endl;
         cout << "Received packet from " << inet_ntoa(server_addr.sin_addr)  << ":" << ntohs(server_addr.sin_port) << endl;
-        cout << "Data: ";
-        for(int i = 0; i < BufferLength; i++){
-            cout << Buffer[i];
-        }
-        cout << endl;
+        cout << "Data: " << Buffer << endl;
     }
 }
 

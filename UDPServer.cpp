@@ -8,14 +8,17 @@
 
 //Socket headers
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -107,12 +110,11 @@ void UDPServer::run(){
     while(running){
         FD_SET(Ssocket, &rfds);
         TimeInterval.tv_sec = 0;
-        TimeInterval.tv_usec = 500000;
-        cout << "calling select" << endl;
+        TimeInterval.tv_usec = 5000;
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
-        if(DebugMode||verboseMode){
-            cout << "selRet value: " << selRet << endl;
-        }
+        //if(DebugMode||verboseMode){
+        //    cout << "selRet value: " << selRet << endl;
+        //}
         if(selRet == -1){
             //error
             perror("bind");
@@ -127,8 +129,12 @@ void UDPServer::run(){
             double duration;
             vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
-                duration = (clock() - itr->lastSent) / (double) CLOCKS_PER_SEC;
-                if(duration > 90){//checks if this connection excessed wait time
+                duration = (double)(clock() - itr->lastSent) / CLOCKS_PER_SEC;
+                //cout << duration << endl;
+                if(DebugMode || verboseMode){
+                    printf("Duration: %f\n", duration);
+                }
+                if(duration > 1){//checks if this connection excessed wait time
                     if(itr->tries < 5){
                         //resend data
                         itr->tries++;
@@ -143,6 +149,7 @@ void UDPServer::run(){
                             cout << "Removing Client: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
                         Clients.erase(itr);
+                        break;
                     }
                 }
             }
@@ -158,7 +165,7 @@ void UDPServer::run(){
                 if(client_addr.sin_addr.s_addr  == itr->address.sin_addr.s_addr ){
                     newConnection = false;
                     packet = UDPData::fromUDP(Buffer, itr->PacketLength);
-                    if(packet.Ack){
+                    if(packet.Ack && packet.index < itr->toSend.size()){
                         if(DebugMode||verboseMode){
                             cout << "Ack Recevied. ";
                         }
