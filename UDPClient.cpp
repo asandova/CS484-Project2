@@ -112,6 +112,8 @@ void UDPClient::run(){
 
     //handshake loop
     while(position < totalPackets){
+        waitTime.tv_sec = 0;
+        waitTime.tv_usec = 500000;
         FD_SET(Ssocket, &rfds);
         //checking for incomming packets
         if(verboseMode || debugMode){
@@ -130,6 +132,9 @@ void UDPClient::run(){
         }
         else if(selRet == 0){
             //timeout
+            if(verboseMode || debugMode){
+            cout << "Time out occured" << endl;
+            }
             if(tries > 5){
                 cout << "Failed to connect. Shuting down" << endl;
                 closeSocket();
