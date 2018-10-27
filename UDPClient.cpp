@@ -28,7 +28,7 @@ UDPClient::UDPClient(string ip, int port){
     BufferLength = 512;
     Port = port;
     Buffer = string();
-    Buffer.resize(BufferLength, '\0');
+    Buffer.resize(BufferLength, '0');
 
     Slength = sizeof(server_addr);
 
@@ -57,7 +57,7 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
     BufferLength = bufferLen;
     Port = port;
     Buffer = string();
-    Buffer.resize(BufferLength, '\0');
+    Buffer.resize(BufferLength, '0');
 
     Slength = sizeof(server_addr);
 
@@ -95,7 +95,7 @@ void UDPClient::run(){
 
     unsigned int position = 0;
     unsigned int totalPackets = numeric_limits<unsigned int>::max(); 
-    struct DataBlock packet;
+    UDPDataBlock packet;
 
     //constructing connection request
     temp = (char*) malloc( 510 * sizeof(char) );

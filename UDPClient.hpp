@@ -23,7 +23,6 @@ using namespace std;
 class UDPClient{
 
     private:
-        bool debugMode;
         string ServerAddress;
         unsigned int BufferLength;
         int ReceiveLength;
@@ -32,7 +31,7 @@ class UDPClient{
         int Port;
         static int Ssocket;
         string Buffer;
-        struct UDPData receivedData;
+        UDPDataBlock receivedData;
         socklen_t Slength;
         struct timeval waitTime;
 
