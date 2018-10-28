@@ -191,7 +191,9 @@ void UDPClient::run(){
                     receivedData[packet.index] = packet;
                     position++;
                 }
-                packet.data = string("0",BufferLength-13);
+                temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
+                memset(temp, '0', (BufferLength-13+1));
+                packet.data = temp;
                 packet.Ack = true;
                 packet.handshake = false;
                 packet.terminate = false;
