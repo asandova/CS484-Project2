@@ -185,16 +185,8 @@ int UDPClient::run(){
                     lastSent = clock();
                 }
             }
-            else if(packet.Ack) {
+            else {
                 //receive data packet
-                if(packet.index == position){
-                    receivedData[packet.index] = packet;
-                    position++;
-                    packet.Ack = true;
-                    packet.handshake = false;
-                    packet.terminate = false;
-                    packet.index = position;
-                }
                 if(position >= receivedData.size()){
                     packet.Ack = false;
                     packet.handshake = false;
@@ -202,6 +194,14 @@ int UDPClient::run(){
                     packet.index = 0;
                     terminate = true;
                     transferComplete = true;
+                }
+                else{
+                    receivedData[packet.index] = packet;
+                    position++;
+                    packet.Ack = true;
+                    packet.handshake = false;
+                    packet.terminate = false;
+                    packet.index = position;
                 }
                 temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                 memset(temp, '0', (BufferLength-13));
