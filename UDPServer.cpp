@@ -106,7 +106,7 @@ void UDPServer::run(){
     signal(SIGINT, terminateServer);
     fd_set rfds;
     FD_ZERO(&rfds);
-    
+    char * temp = nullptr;
     int running = 1;
     while(running){
         FD_SET(Ssocket, &rfds);
@@ -149,8 +149,7 @@ void UDPServer::run(){
                         if(DebugMode||verboseMode){
                             cout << "Removing Client: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
-                        Clients.erase(itr);
-                        break;
+                        itr = Clients.erase(itr);
                     }
                 }
             }
@@ -167,7 +166,40 @@ void UDPServer::run(){
                     && client_addr.sin_port == itr->address.sin_port ){
                     newConnection = false;
                     packet = UDPData::fromUDP(Buffer, itr->PacketLength);
-                    if(packet.Ack ){
+                    if(packet.terminate){
+                        if(DebugMode||verboseMode){
+                            cout << "Termination packet recevied. Termination connection" << endl;
+                        }
+                        temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
+                        memset(temp,'0',(itr->PacketLength - 13));
+                        UDPData::makepacket(packet, temp, 0,false, false, true);
+                        Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
+                        free(temp);
+                        cout << "erasing finised clients" << endl;
+                        itr = Clients.erase(itr);
+                        break;
+                    }
+                    else if(packet.handshake){
+                        if(packet.Ack){
+                            if(DebugMode||verboseMode){
+                                cout << "Sending handShake Ack" << endl;
+                            }
+                            Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
+                            itr->lastSent = clock();
+                        }else{
+                            if(DebugMode||verboseMode){
+                                cout << "Resending handshake" << endl;
+                            }
+                            temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
+                            memset(temp,'0',(itr->PacketLength - 13));
+                            UDPData::makepacket(packet, temp, itr->toSend.size(), true, true, false);
+                            Send( UDPData::toUDP(packet) ,itr->address, itr->Slen );
+                            free(temp);
+                            itr->lastSent = clock();
+                        }
+                        break;
+                    }
+                    else if(packet.Ack){
                         if(packet.index < itr->toSend.size()){
                             if(DebugMode||verboseMode){
                                 cout << "Ack Recevied." << endl;
@@ -185,61 +217,37 @@ void UDPServer::run(){
                                 if(DebugMode||verboseMode){
                                     cout << "All data has been sent.\nTerminatiing connection" << endl;
                                 }
-                                packet.terminate = true;
-                                char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
+                                temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
                                 memset(temp,'0',(itr->PacketLength - 13));
-                                packet.data =  temp;
-                                packet.index = 0;
-                                packet.handshake = false;
-                                packet.Ack = false;
+                                UDPData::makepacket(packet, temp,0, false,false,true);
                                 Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
-                                Clients.erase(itr);
-                                break;
+                                free(temp);
+                                itr = Clients.erase(itr);
+                                cout << "removed client" << endl;
                             }else{
+                                cout << "Sending packet" << endl;
                                 Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
                                 itr->lastSent = clock();
                             }
                         }
-                    }else if(packet.handshake){
-                        if(packet.Ack){
+                        else{
                             if(DebugMode||verboseMode){
-                                cout << "Sending handShake Ack" << endl;
+                                cout << "All data has been sent.\nTerminatiing connection" << endl;
                             }
-                            Send( UDPData::toUDP( itr->toSend[itr->position]),itr->address, itr->Slen );
-                            itr->lastSent = clock();
-                        }else{
-                            if(DebugMode||verboseMode){
-                                cout << "Resending handshake" << endl;
-                            }
-                            UDPDataBlock resend;
-                            resend.index = itr->toSend.size();
-                            char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
+                            temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
                             memset(temp,'0',(itr->PacketLength - 13));
-                            resend.data =  temp;
-                            resend.Ack = true;
-                            resend.handshake = true;
-                            resend.terminate = false;
-                            Send( UDPData::toUDP(resend) ,itr->address, itr->Slen );
-                            itr->lastSent = clock();
+                            UDPData::makepacket(packet, temp,0, false,false,true);
+                            Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
+                            free(temp);
+                            itr = Clients.erase(itr);
+                            cout << "removed client" << endl;
                         }
-                    }else if(packet.terminate){
-                        if(DebugMode||verboseMode){
-                            cout << "Termination packet recevied. Termination connection" << endl;
-                        }
-                        packet.terminate = true;
-                        char* temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
-                        memset(temp,'0',(itr->PacketLength - 13));
-                        packet.data =  temp;
-                        packet.index = 0;
-                        packet.handshake = false;
-                        packet.Ack = false;
-                        Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
-                        Clients.erase(itr);
                         break;
                     }
                 }
             }
             if(newConnection){
+                //Establishing a new connection
                 if(DebugMode||verboseMode){
                     cout << "Creating new connection" << endl;
                 }
@@ -254,15 +262,12 @@ void UDPServer::run(){
                 n.tries = 0;
                 n.toSend = UDPData(packet.index);
                 fileToUDP(n.toSend, n.PacketLength);
-                char* temp = (char*)malloc( (n.PacketLength-13+1) * sizeof(char));
+                temp = (char*)malloc( (n.PacketLength-12) * sizeof(char));
                 memset(temp, '0',n.PacketLength -13 );
-                packet.data = temp;
-                packet.index = n.toSend.size();
-                packet.Ack = true;
-                packet.handshake = true;
-                packet.terminate = false;
+                UDPData::makepacket(packet, temp, n.toSend.size(), true, true, false);
                 Send( UDPData::toUDP(packet),n.address, n.Slen );
                 n.lastSent = clock();
+                free(temp);
                 Clients.push_back(n);
                 if(DebugMode||verboseMode){
                     cout << "new client added" << endl;
@@ -270,7 +275,9 @@ void UDPServer::run(){
             }
         }
         //clear client_addr
+        cout << "clearing temp address" << endl;
         memset(&client_addr, 0, sizeof(sockaddr_in));
+        
     }
 }
 /*

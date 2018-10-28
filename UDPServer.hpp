@@ -61,6 +61,5 @@ class UDPServer{
         static void closeSocket();
         void readFile(string filename);
         void fileToUDP(UDPData &cblocks,int len);
-
 };
 #endif //UDPSERVER_HPP

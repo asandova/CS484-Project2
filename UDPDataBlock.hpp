@@ -41,7 +41,7 @@ class UDPData{
         static string toUDP( UDPDataBlock Block); //converts a dataBlock to a UDP Payload
         static UDPDataBlock fromUDP(string block, int size); //convers a UDP playload to dataBlock
         void resizeTo(int nlen); //expand the chain to length nlen
-
+        static void makepacket(UDPDataBlock& pack,char* data,unsigned index, bool Ack, bool handshake, bool terminate);
 };
 
 #endif //UDPDATABLOCK_HPP

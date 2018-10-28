@@ -102,15 +102,12 @@ int UDPClient::run(){
     //constructing connection request
     temp = (char*) malloc( 510 * sizeof(char) );
     memset(temp, '0', 509);
-    packet.data = temp;
-    temp = nullptr;
-    packet.index = BufferLength;
-    packet.Ack = false;
-    packet.handshake = true;
-    packet.terminate = false;
+    UDPData::makepacket(packet,temp,BufferLength,false,true,false);
     //sending connction request
     Send( UDPData::toUDP(packet));
     lastSent = clock();
+    free(temp);
+    
 
     //handshake loop
     while(position < totalPackets && !terminate){
@@ -152,22 +149,18 @@ int UDPClient::run(){
             Receive();
             packet = UDPData::fromUDP(Buffer,BufferLength);
             if(packet.terminate){
+                cout << "termination packet received" << endl;
                 break;
             }
-            if(packet.handshake){
+            else if(packet.handshake){
                 //received a handshake packet
                 if(packet.Ack){
                     //sending clients second handshake packet
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
-                    totalPackets = packet.index;
                     temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                     memset(temp, '0', BufferLength-13);
-                    packet.data = temp;
-                    packet.index = 0;
-                    packet.Ack = true;
-                    packet.handshake = true;
-                    packet.terminate = false;
+                    UDPData::makepacket(packet, temp, 0, true, true, false);
                     Send( UDPData::toUDP(packet));
                     tries= 0;
                     lastSent = clock();
@@ -175,40 +168,32 @@ int UDPClient::run(){
                     //resending start connection packet
                     temp = (char*) malloc( 510 * sizeof(char) );
                     memset(temp, '0', 509);
-                    packet.data = temp;
-                    packet.index = BufferLength;
-                    packet.Ack = false;
-                    packet.handshake = true;
-                    packet.terminate = false;
+                    UDPData::makepacket(packet, temp, BufferLength, false, true, false);
                     Send( UDPData::toUDP(packet) );
+                    free(temp);
                     tries++;
                     lastSent = clock();
                 }
+                break;
             }
-            else {
+            else if(packet.Ack) {
                 //receive data packet
+                temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
+                memset(temp, '0', (BufferLength-13));
                 if(position >= receivedData.size()){
-                    packet.Ack = false;
-                    packet.handshake = false;
-                    packet.terminate = true;
-                    packet.index = 0;
-                    terminate = true;
+                    UDPData::makepacket(packet,temp,0,false,false, true);
                     transferComplete = true;
                 }
                 else{
                     receivedData[packet.index] = packet;
                     position++;
-                    packet.Ack = true;
-                    packet.handshake = false;
-                    packet.terminate = false;
-                    packet.index = position;
+                    UDPData::makepacket(packet,temp,position,true,false,false);
                 }
-                temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
-                memset(temp, '0', (BufferLength-13));
-                packet.data = temp;
                 Send(UDPData::toUDP(packet) );
+                free(temp);
                 lastSent = clock();
-            }          
+            }     
+            break;     
         }
     }
     closeSocket();

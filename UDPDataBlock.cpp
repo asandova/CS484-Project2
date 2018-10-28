@@ -165,3 +165,10 @@ void UDPData::resizeTo(int nLen){
     blank.terminate = false;
     Blocks.resize(nLen,blank);
 }
+void UDPData::makepacket(UDPDataBlock& pack, char* data,unsigned index, bool Ack, bool handshake, bool terminate){
+    pack.data = *data;
+    pack.index = index;
+    pack.handshake = handshake;
+    pack.Ack = Ack;
+    pack.terminate = terminate;
+}
