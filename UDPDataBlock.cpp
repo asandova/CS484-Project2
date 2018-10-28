@@ -45,7 +45,6 @@ void UDPData::parseFile(string filename){
                 C = datafile.get();
                 data.push_back(C);
                 count++;
-
             }
             //cout << endl;
             //cout << data << endl;
@@ -68,14 +67,14 @@ void UDPData::toFile(string filename){
 }
 
 void UDPData::append(string data){
-    if(data.length() > BlockLength - 13){
-        cout << BlockLength -13 << endl;
+    if(data.length() > BlockLength){
+        cout << BlockLength << endl;
         cout << "entered data is too large for current size" << endl;
     }
     else if(data.length() < BlockLength){
         int fill = BlockLength - data.length();
         for(int i = 0; i < fill; i++){
-            data.push_back('\0');
+            data.push_back('0');
         }
     }
 
@@ -160,7 +159,7 @@ void UDPData::resizeTo(int nLen){
     cout << "resizing" << endl;
     UDPDataBlock blank;
     blank.index = 0;
-    blank.data = "";
+    blank.data = string('0',nLen);
     blank.Ack = false;
     blank.handshake = false;
     blank.terminate = false;

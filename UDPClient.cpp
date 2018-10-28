@@ -160,7 +160,7 @@ void UDPClient::run(){
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
                     totalPackets = packet.index;
-                    temp = (char*) malloc( BufferLength-13+1 * sizeof(char) );
+                    temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                     memset(temp, '0', BufferLength-13);
                     packet.data = temp;
                     packet.index = 0;
@@ -190,14 +190,21 @@ void UDPClient::run(){
                 if(packet.index == position){
                     receivedData[packet.index] = packet;
                     position++;
+                    packet.Ack = true;
+                    packet.handshake = false;
+                    packet.terminate = false;
+                    packet.index = position;
+                }
+                if(position <= receivedData.size()){
+                    packet.Ack = false;
+                    packet.handshake = false;
+                    packet.terminate = true;
+                    packet.index = 0;
                 }
                 temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
-                memset(temp, '0', (BufferLength-13+1));
+                memset(temp, '0', (BufferLength-13));
                 packet.data = temp;
-                packet.Ack = true;
-                packet.handshake = false;
-                packet.terminate = false;
-                packet.index = position;
+
                 Send(UDPData::toUDP(packet) );
             }          
         }
