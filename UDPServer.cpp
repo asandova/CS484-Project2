@@ -111,7 +111,7 @@ void UDPServer::run(){
     while(running){
         FD_SET(Ssocket, &rfds);
         TimeInterval.tv_sec = 0;
-        TimeInterval.tv_usec = 5000;
+        TimeInterval.tv_usec = 500;
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
         //if(DebugMode||verboseMode){
         //    cout << "selRet value: " << selRet << endl;

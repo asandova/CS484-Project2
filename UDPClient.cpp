@@ -185,9 +185,8 @@ int UDPClient::run(){
                     lastSent = clock();
                 }
             }
-            else{
+            else if(packet.Ack) {
                 //receive data packet
-                packet = UDPData::fromUDP(Buffer, BufferLength);
                 if(packet.index == position){
                     receivedData[packet.index] = packet;
                     position++;
@@ -207,8 +206,8 @@ int UDPClient::run(){
                 temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                 memset(temp, '0', (BufferLength-13));
                 packet.data = temp;
-
                 Send(UDPData::toUDP(packet) );
+                lastSent = clock();
             }          
         }
     }
