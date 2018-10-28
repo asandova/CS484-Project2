@@ -196,7 +196,7 @@ int UDPClient::run(){
                     packet.terminate = false;
                     packet.index = position;
                 }
-                if(position <= receivedData.size()){
+                if(position >= receivedData.size()){
                     packet.Ack = false;
                     packet.handshake = false;
                     packet.terminate = true;

@@ -163,13 +163,14 @@ void UDPServer::run(){
             bool newConnection = true;
             vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
-                if(client_addr.sin_addr.s_addr  == itr->address.sin_addr.s_addr ){
+                if(client_addr.sin_addr.s_addr  == itr->address.sin_addr.s_addr 
+                    && client_addr.sin_port == itr->address.sin_port ){
                     newConnection = false;
                     packet = UDPData::fromUDP(Buffer, itr->PacketLength);
                     if(packet.Ack ){
                         if(packet.index < itr->toSend.size()){
                             if(DebugMode||verboseMode){
-                                cout << "Ack Recevied. ";
+                                cout << "Ack Recevied." << endl;
                             }
                             if(packet.index == itr->position){
                                 cout << "Sending next packet" << endl;
@@ -236,7 +237,6 @@ void UDPServer::run(){
                         Clients.erase(itr);
                         break;
                     }
-                    
                 }
             }
             if(newConnection){
