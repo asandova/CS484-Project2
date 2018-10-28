@@ -234,8 +234,9 @@ void UDPServer::run(){
                         packet.Ack = false;
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
                         Clients.erase(itr);
+                        break;
                     }
-                    break;
+                    
                 }
             }
             if(newConnection){

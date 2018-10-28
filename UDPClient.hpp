@@ -45,7 +45,7 @@ class UDPClient{
         UDPClient(string ip, int port, unsigned int bufferLen);
         //void echo();
         void save(string filename);
-        void run();
+        int run();
         static void terminateClient(int signum);
     private:
         void Send(string data);

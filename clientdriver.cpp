@@ -42,6 +42,8 @@ int main( int argc, char* argv[]){
 	}
 	cout << "Address " << IP << ":"<< Port << endl;
 	UDPClient client = UDPClient(IP, Port);
-	client.run();
+	if(client.run()){
+		client.save(filename);
+	}
 
 }

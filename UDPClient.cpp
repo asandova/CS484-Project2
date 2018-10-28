@@ -84,7 +84,7 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
     }
 }
 
-void UDPClient::run(){
+int UDPClient::run(){
     if(DebugMode||verboseMode){
         cout << "Client is running..." << endl;
     }
@@ -92,6 +92,7 @@ void UDPClient::run(){
     fd_set rfds;
     FD_ZERO(&rfds);
     bool terminate = false;
+    bool transferComplete = false;
     char* temp;
 
     unsigned int position = 0;
@@ -200,6 +201,8 @@ void UDPClient::run(){
                     packet.handshake = false;
                     packet.terminate = true;
                     packet.index = 0;
+                    terminate = true;
+                    transferComplete = true;
                 }
                 temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                 memset(temp, '0', (BufferLength-13));
@@ -210,6 +213,7 @@ void UDPClient::run(){
         }
     }
     closeSocket();
+    return transferComplete;
 }
 /*
 void UDPClient::echo(){
