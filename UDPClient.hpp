@@ -31,7 +31,7 @@ class UDPClient{
         int Port;
         static int Ssocket;
         string Buffer;
-        UDPDataBlock receivedData;
+        UDPData receivedData;
         socklen_t Slength;
         struct timeval waitTime;
 

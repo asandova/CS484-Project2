@@ -90,7 +90,7 @@ void UDPData::append(string data){
     //cout << "block appended" << endl;
 }
 
-UDPDataBlock& UDPData::operator[](int index){
+UDPDataBlock& UDPData::operator[](size_t index){
     if(index >= Blocks.size() || index < 0){
         cout << "Array index out of bound!" << endl;
         exit(0);

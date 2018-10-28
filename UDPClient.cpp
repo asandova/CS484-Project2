@@ -79,18 +79,19 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
-    if(debugMode||verboseMode){
+    if(DebugMode||verboseMode){
         cout << "Socket " << Ssocket << " was sucsessfully binded" << endl;
     }
 }
 
 void UDPClient::run(){
-    if(debugMode||verboseMode){
+    if(DebugMode||verboseMode){
         cout << "Client is running..." << endl;
     }
     signal(SIGINT, terminateClient );
     fd_set rfds;
     FD_ZERO(&rfds);
+    bool terminate = false;
     char* temp;
 
     unsigned int position = 0;
@@ -111,12 +112,12 @@ void UDPClient::run(){
     lastSent = clock();
 
     //handshake loop
-    while(position < totalPackets){
+    while(position < totalPackets && !terminate){
         waitTime.tv_sec = 0;
         waitTime.tv_usec = 5000;
         FD_SET(Ssocket, &rfds);
         //checking for incomming packets
-        if(verboseMode || debugMode){
+        if(verboseMode || DebugMode){
             cout << "waiting for responce." << endl;
         }
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &waitTime);
@@ -128,7 +129,7 @@ void UDPClient::run(){
         }
         else if(selRet == 0){
             //timeout
-            if(verboseMode || debugMode){
+            if(verboseMode || DebugMode){
             cout << "Time out occured" << endl;
             }
             if(tries > 5){
@@ -149,6 +150,9 @@ void UDPClient::run(){
             //Received a packet
             Receive();
             packet = UDPData::fromUDP(Buffer,BufferLength);
+            if(packet.terminate){
+                break;
+            }
             if(packet.handshake){
                 //received a handshake packet
                 if(packet.Ack){
@@ -220,7 +224,7 @@ void UDPClient::echo(){
 
 void UDPClient::Send(string data){
 
-    if(debugMode || verboseMode){
+    if(DebugMode || verboseMode){
         cout << "Sending: " << data << endl;
         cout << "DataLength:" << data.size() << endl;
         cout << "Data:" << data << endl;
@@ -230,14 +234,14 @@ void UDPClient::Send(string data){
         perror("sendto");
         exit(1);
     }
-    if(debugMode || verboseMode){
+    if(DebugMode || verboseMode){
         cout << "sent length: " << sendlen << endl;
     }
 }
 
 void UDPClient::Receive(){
 
-    if(debugMode || verboseMode) {cout << "Receiving..." << endl;}
+    if(DebugMode || verboseMode) {cout << "Receiving..." << endl;}
     char* buf = &Buffer[0];
     memset(buf, '0', BufferLength);
     if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,MSG_WAITALL,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
@@ -245,7 +249,7 @@ void UDPClient::Receive(){
             close(Ssocket);
             exit(1);
     }
-    if(debugMode || verboseMode){
+    if(DebugMode || verboseMode){
         cout << "ReceivedLength: " << ReceiveLength << endl;
         cout << "Received packet from " << inet_ntoa(server_addr.sin_addr)  << ":" << ntohs(server_addr.sin_port) << endl;
         cout << "Data: " << Buffer << endl;

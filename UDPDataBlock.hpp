@@ -35,7 +35,7 @@ class UDPData{
         void parseFile(string filename);// converts a file to a chain of Blocks
         void toFile(string filename); // converts the chain of block to a file
         void append(string data);//add a block to the end of the chain
-        UDPDataBlock& operator[](int index); //returns a block at position index
+        UDPDataBlock& operator[](size_t index); //returns a block at position index
         int size(); // returns the total length of the chain
         unsigned int getBlockSize();
         static string toUDP( UDPDataBlock Block); //converts a dataBlock to a UDP Payload
