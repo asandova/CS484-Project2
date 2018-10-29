@@ -94,6 +94,7 @@ int UDPClient::run(){
     bool terminate = false;
     bool transferComplete = false;
     char* temp;
+    UDPDataBlock lastPacket;
 
     unsigned int position = 0;
     unsigned int totalPackets = numeric_limits<unsigned int>::max(); 
@@ -107,7 +108,6 @@ int UDPClient::run(){
     Send( UDPData::toUDP(packet));
     lastSent = clock();
     free(temp);
-    
 
     //handshake loop
     while(position < totalPackets && !terminate){
@@ -138,7 +138,7 @@ int UDPClient::run(){
             double duration;
             duration = (clock() - lastSent) / (double) CLOCKS_PER_SEC;
             if(duration > 1){
-                Send( UDPData::toUDP(packet));
+                Send( UDPData::toUDP(lastPacket));
                 lastSent = clock();
                 tries++;
             }
@@ -162,17 +162,20 @@ int UDPClient::run(){
                     memset(temp, '0', BufferLength-13);
                     UDPData::makepacket(packet, temp, 0, true, true, false);
                     Send( UDPData::toUDP(packet));
-                    tries= 0;
                     lastSent = clock();
+                    lastPacket = packet;
+                    free(temp);
+                    tries= 0;
                 }else{
                     //resending start connection packet
                     temp = (char*) malloc( 510 * sizeof(char) );
                     memset(temp, '0', 509);
                     UDPData::makepacket(packet, temp, BufferLength, false, true, false);
                     Send( UDPData::toUDP(packet) );
+                    lastSent = clock();
+                    lastPacket = packet;
                     free(temp);
                     tries++;
-                    lastSent = clock();
                 }
                 break;
             }
@@ -190,8 +193,9 @@ int UDPClient::run(){
                     UDPData::makepacket(packet,temp,position,true,false,false);
                 }
                 Send(UDPData::toUDP(packet) );
-                free(temp);
                 lastSent = clock();
+                lastPacket = packet;
+                free(temp);
             }     
             break;     
         }

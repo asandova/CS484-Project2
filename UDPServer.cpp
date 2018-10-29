@@ -275,7 +275,7 @@ void UDPServer::run(){
             }
         }
         //clear client_addr
-        cout << "clearing temp address" << endl;
+        //cout << "clearing temp address" << endl;
         memset(&client_addr, 0, sizeof(sockaddr_in));
         
     }
