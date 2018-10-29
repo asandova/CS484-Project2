@@ -201,6 +201,7 @@ int UDPClient::run(){
         }
     }
     closeSocket();
+    cout << "Transfer Complete: " << transferComplete << endl;
     return transferComplete;
 }
 /*
