@@ -107,6 +107,7 @@ int UDPClient::run(){
     //sending connction request
     Send( UDPData::toUDP(packet));
     lastSent = clock();
+    lastPacket = packet;
     free(temp);
 
     //handshake loop
@@ -137,7 +138,7 @@ int UDPClient::run(){
             }
             double duration;
             duration = (clock() - lastSent) / (double) CLOCKS_PER_SEC;
-            if(duration > 1){
+            if(duration > 2){
                 Send( UDPData::toUDP(lastPacket));
                 lastSent = clock();
                 tries++;
@@ -164,7 +165,6 @@ int UDPClient::run(){
                     Send( UDPData::toUDP(packet));
                     lastSent = clock();
                     lastPacket = packet;
-                    free(temp);
                     tries= 0;
                 }else{
                     //resending start connection packet
@@ -174,10 +174,11 @@ int UDPClient::run(){
                     Send( UDPData::toUDP(packet) );
                     lastSent = clock();
                     lastPacket = packet;
-                    free(temp);
+                    
                     tries++;
                 }
-                break;
+                free(temp);
+                continue;
             }
             else if(packet.Ack) {
                 //receive data packet
@@ -197,7 +198,7 @@ int UDPClient::run(){
                 lastPacket = packet;
                 free(temp);
             }     
-            break;     
+           continue;    
         }
     }
     closeSocket();
