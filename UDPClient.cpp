@@ -174,13 +174,12 @@ int UDPClient::run(){
                     Send( UDPData::toUDP(packet) );
                     lastSent = clock();
                     lastPacket = packet;
-                    
                     tries++;
                 }
                 free(temp);
                 continue;
             }
-            else if(packet.Ack) {
+            else {
                 //receive data packet
                 temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                 memset(temp, '0', (BufferLength-13));

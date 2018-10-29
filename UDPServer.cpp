@@ -135,15 +135,16 @@ void UDPServer::run(){
                 //if(DebugMode || verboseMode){
                     //printf("Duration: %f\n", duration);
                 //}
-                if(duration > 1){//checks if this connection excessed wait time
+                if(duration > 5){//checks if this connection excessed wait time
                     if(itr->tries < 5){
                         //resend data
                         itr->tries++;
-                        Send( UDPData::toUDP( itr->toSend[itr->position] ) , itr->address, itr->Slen );
-                        itr->lastSent = clock();
                         if(DebugMode||verboseMode){
                             cout << "Resending to: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
+                        Send( UDPData::toUDP( itr->toSend[itr->position] ) , itr->address, itr->Slen );
+                        itr->lastSent = clock();
+
                     }else{
                         //terminate connection after five timeouts
                         if(DebugMode||verboseMode){
