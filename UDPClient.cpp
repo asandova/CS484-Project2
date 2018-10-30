@@ -190,7 +190,12 @@ int UDPClient::run(){
                 else{
                     receivedData[packet.index] = packet;
                     position++;
-                    UDPData::makepacket(packet,temp,position,true,false,false);
+                    if(position >= receivedData.size()){
+                        transferComplete = true;
+                        UDPData::makepacket(packet,temp,0,false,false, true);
+                    }else{
+                        UDPData::makepacket(packet,temp,position,true,false,false);
+                    }
                 }
                 Send(UDPData::toUDP(packet) );
                 lastSent = clock();
