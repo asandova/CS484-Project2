@@ -127,7 +127,7 @@ string UDPData::toUDP(UDPDataBlock Block){
         }
     }
     dString = dString + sIndex;
-    dString = dString +  Block.data;
+    dString = dString + Block.data;
     return dString;
 }
 
