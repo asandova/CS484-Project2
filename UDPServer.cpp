@@ -321,7 +321,7 @@ void UDPServer::Receive(){
 
 void UDPServer::Send(string data, struct sockaddr_in client, socklen_t Clen){
     /*
-        Send data to desired address
+        Send data to desired address and port
     */
    if(DebugMode || verboseMode){
         cout << "Sending to client: " << inet_ntoa(client.sin_addr)  << ":" << ntohs(client.sin_port) << endl;
@@ -349,6 +349,9 @@ void UDPServer::closeSocket(){
     if(DebugMode || verboseMode){ cout << "Socket " << Ssocket  << " successfuly closed"<< endl;}
 }
 void UDPServer::terminateServer( int signum ){
+    /*
+        Catches the control C interupts and properly closes the server.
+    */
     cout << "\nInterrupt signal (" << signum << ") received." << endl;
 
     closeSocket();
@@ -356,6 +359,9 @@ void UDPServer::terminateServer( int signum ){
 }
 
 void UDPServer::readFile(string filename){
+    /*
+        opens and reads the file that is to be transmited. Save the result in a private string variable
+    */
     cout << "reading file: " << filename << endl;
     ifstream datafile;
     datafile.open(filename, ifstream::in | ifstream::binary);
@@ -366,7 +372,7 @@ void UDPServer::readFile(string filename){
                 C = datafile.get();
                 data.push_back(C);
         }
-        data.pop_back();
+        //data.pop_back();
         cout << "closing file" << endl;
         dataToServe = data;
         //cout << dataToServe << endl;
@@ -377,6 +383,12 @@ void UDPServer::readFile(string filename){
 }
 
 void UDPServer::fileToUDP(UDPData &cBlocks,int len){
+    /*
+        Turns the saves from the read in file and splits the string into the desired data segments the clients
+        wants.
+        It takes in a UPDData object and the size of the each section.
+        It automaticly take into accout of the 13 character long custom header used by the this client server pair
+    */
     cout << "in fileToUDP" << endl;
     int dataLen = len-13;
     string temp = dataToServe;
@@ -386,7 +398,7 @@ void UDPServer::fileToUDP(UDPData &cBlocks,int len){
         cout << len << endl;
     }
     if( remdr != 0){
-        int dif = len - remdr;
+        int dif = dataLen - remdr;
         for(int i = 0; i < dif; i++){
             temp.push_back('0');
         }

@@ -30,7 +30,7 @@ UDPData::UDPData(unsigned int blockLength, int size){
     Blocks = vector<UDPDataBlock>();
     resizeTo(size);
 }
-
+/*
 void UDPData::parseFile(string filename){
     cout << "reading file: " << filename << endl;
     cout << BlockLength << endl;
@@ -55,7 +55,7 @@ void UDPData::parseFile(string filename){
     }else{
         cout << "failed to open file" << endl;
     }
-}
+}*/
 void UDPData::toFile(string filename){
     cout << "writing to file" << endl;
     ofstream outfile;
@@ -67,12 +67,12 @@ void UDPData::toFile(string filename){
 }
 
 void UDPData::append(string data){
-    if(data.length() > BlockLength){
+    if(data.length() > BlockLength-13){
         cout << BlockLength << endl;
         cout << "entered data is too large for current size" << endl;
     }
-    else if(data.length() < BlockLength){
-        int fill = BlockLength - data.length();
+    else if(data.length() < BlockLength-13){
+        int fill = (BlockLength-13) - data.length();
         for(int i = 0; i < fill; i++){
             data.push_back('0');
         }
