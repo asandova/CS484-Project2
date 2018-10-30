@@ -150,7 +150,7 @@ void UDPServer::run(){
                         if(DebugMode||verboseMode){
                             cout << "Removing Client: " << inet_ntoa( itr->address.sin_addr)  << ":" << ntohs(itr->address.sin_port) << endl;
                         }
-                        itr = Clients.erase(itr);
+                        Clients.erase(itr);
                     }
                 }
             }
@@ -176,7 +176,7 @@ void UDPServer::run(){
                         UDPData::makepacket(packet, temp, 0,false, false, true);
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
                         cout << "erasing finised clients" << endl;
-                        itr = Clients.erase(itr);
+                        Clients.erase(itr);
                         free(temp);
                         break;
                     }
@@ -223,7 +223,7 @@ void UDPServer::run(){
                                 UDPData::makepacket(packet, temp,0, false,false,true);
                                 Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                                 free(temp);
-                                itr = Clients.erase(itr);
+                                Clients.erase(itr);
                                 cout << "removed client" << endl;
                             }else{
                                 cout << "Sending packet" << endl;
@@ -240,7 +240,7 @@ void UDPServer::run(){
                             UDPData::makepacket(packet, temp,0, false,false,true);
                             Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                             free(temp);
-                            itr = Clients.erase(itr);
+                            Clients.erase(itr);
                             cout << "removed client" << endl;
                         }
                         break;
