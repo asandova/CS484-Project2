@@ -142,7 +142,7 @@ UDPDataBlock UDPData::fromUDP(string block, int size){
     cout << block.substr(3,10) << endl;
     sindex >> incomming.index;
     cout << incomming.index << endl;
-    incomming.data = block.substr(14,size-14);
+    incomming.data = block.substr(13,size-14);
     cout << "Packet converted" << endl;
     return incomming;
 }
@@ -159,7 +159,7 @@ void UDPData::resizeTo(int nLen){
     cout << "resizing" << endl;
     UDPDataBlock blank;
     blank.index = 0;
-    blank.data = string('0',nLen);
+    blank.data = string('0',BlockLength-13);
     blank.Ack = false;
     blank.handshake = false;
     blank.terminate = false;
