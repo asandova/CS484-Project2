@@ -159,6 +159,7 @@ int UDPClient::run(){
                     //sending clients second handshake packet
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
+                    totalPackets = packet.index;
                     temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
                     memset(temp, '0', BufferLength-13);
                     UDPData::makepacket(packet, temp, 0, true, true, false);

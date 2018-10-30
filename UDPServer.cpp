@@ -175,9 +175,9 @@ void UDPServer::run(){
                         memset(temp,'0',(itr->PacketLength - 13));
                         UDPData::makepacket(packet, temp, 0,false, false, true);
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
-                        free(temp);
                         cout << "erasing finised clients" << endl;
                         itr = Clients.erase(itr);
+                        free(temp);
                         break;
                     }
                     else if(packet.handshake){
