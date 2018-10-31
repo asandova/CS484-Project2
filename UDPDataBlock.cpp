@@ -165,7 +165,9 @@ void UDPData::resizeTo(int nLen){
     blank.terminate = false;
     Blocks.resize(nLen,blank);
 }
-void UDPData::makepacket(UDPDataBlock& pack, char* data,unsigned index, bool Ack, bool handshake, bool terminate){
+void UDPData::makepacket(UDPDataBlock& pack, char* data, size_t datalen,unsigned index, bool Ack, bool handshake, bool terminate){
+    data = (char*)malloc(datalen+1 * sizeof(char));
+    memset(data, '0', datalen);
     pack.data = string(data);
     pack.index = index;
     pack.handshake = handshake;

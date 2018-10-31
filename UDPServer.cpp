@@ -34,6 +34,20 @@ bool UDPServer::DebugMode = false;
 bool UDPServer::verboseMode = false;
 int UDPServer::Ssocket;
 
+
+Connections makeConnecton(int PackLen, int pos, struct sockaddr_in addr, socklen_t Slen, UDPData toSend, clock_t lastSent, int tries){
+    Connections conn;
+    conn.PacketLength = PackLen;
+    conn.position = pos;
+    conn.address = addr;
+    conn.address.sin_family = AF_INET;
+    conn.Slen = Slen;
+    conn.toSend = toSend;
+    conn.lastSent = lastSent;
+    conn.tries = tries;
+    return conn;
+}
+
 UDPServer::UDPServer(string filename){
     BufferLength = 512;
     Port = 65535;
@@ -42,7 +56,7 @@ UDPServer::UDPServer(string filename){
     readFile(filename);
     Clients = vector<Connections>();
     TimeInterval.tv_sec = 0;
-    TimeInterval.tv_usec = 500000;
+    TimeInterval.tv_usec = 500;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
@@ -75,7 +89,7 @@ UDPServer::UDPServer(string filename, int port){
 
     Clients = vector<Connections>();
     TimeInterval.tv_sec = 0;
-    TimeInterval.tv_usec = 500000;
+    TimeInterval.tv_usec = 500;
 
     Ssocket=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
     if( Ssocket == -1 ){
@@ -113,9 +127,6 @@ void UDPServer::run(){
         TimeInterval.tv_sec = 0;
         TimeInterval.tv_usec = 500;
         int selRet = select(Ssocket+1, &rfds, NULL,NULL, &TimeInterval);
-        //if(DebugMode||verboseMode){
-        //    cout << "selRet value: " << selRet << endl;
-        //}
         if(selRet == -1){
             //error
             perror("bind");
@@ -124,17 +135,11 @@ void UDPServer::run(){
         }
         else if(selRet == 0){
             //timeout
-            //if(DebugMode||verboseMode){
-                //cout << "Timeout occured..." << endl;
-            //}
             double duration;
             vector<Connections>::iterator itr;
             for(itr = Clients.begin(); itr != Clients.end(); ++itr){
                 duration = (double)(clock() - itr->lastSent) / CLOCKS_PER_SEC;
                 //cout << duration << endl;
-                //if(DebugMode || verboseMode){
-                    //printf("Duration: %f\n", duration);
-                //}
                 if(duration > 5){//checks if this connection excessed wait time
                     if(itr->tries < 5){
                         //resend data
@@ -171,18 +176,8 @@ void UDPServer::run(){
                         if(DebugMode||verboseMode){
                             cout << "Termination packet recevied. Termination connection" << endl;
                         }
-                        cout << "allocasting mem" << endl;
-                        cout << (itr->PacketLength - 12) << endl;
-                        cout << 
-                        temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
-                        cout << (itr->PacketLength - 13) << endl;
-                        cout << "setting mem" << endl;
-                        memset(temp,'0',(itr->PacketLength - 13));
-                        cout << "constructing packet" << endl;
-                        UDPData::makepacket(packet, temp, 0, false, false, true);
-                        cout << "sending" << endl;
+                        UDPData::makepacket(packet, temp,itr->PacketLength-13, 0, false, false, true);
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
-                        cout << "erasing finised clients" << endl;
                         Clients.erase(itr);
                         free(temp);
                         break;
@@ -198,9 +193,7 @@ void UDPServer::run(){
                             if(DebugMode||verboseMode){
                                 cout << "Resending handshake" << endl;
                             }
-                            temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
-                            memset(temp,'0',(itr->PacketLength - 13));
-                            UDPData::makepacket(packet, temp, itr->toSend.size(), true, true, false);
+                            UDPData::makepacket(packet, temp ,itr->PacketLength - 13, itr->toSend.size(), true, true, false);
                             Send( UDPData::toUDP(packet) ,itr->address, itr->Slen );
                             free(temp);
                             itr->lastSent = clock();
@@ -225,9 +218,7 @@ void UDPServer::run(){
                                 if(DebugMode||verboseMode){
                                     cout << "All data has been sent.\nTerminatiing connection" << endl;
                                 }
-                                temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
-                                memset(temp,'0',(itr->PacketLength - 13));
-                                UDPData::makepacket(packet, temp, 0, false,false,true);
+                                UDPData::makepacket(packet, temp,itr->PacketLength - 13, 0, false,false,true);
                                 Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                                 free(temp);
                                 Clients.erase(itr);
@@ -242,9 +233,7 @@ void UDPServer::run(){
                             if(DebugMode||verboseMode){
                                 cout << "All data has been sent.\nTerminatiing connection" << endl;
                             }
-                            temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
-                            memset(temp,'0',(itr->PacketLength - 13));
-                            UDPData::makepacket(packet, temp, 0, false,false,true);
+                            UDPData::makepacket(packet, temp, itr->PacketLength - 13,0, false,false,true);
                             Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                             Clients.erase(itr);
                             free(temp);
@@ -261,31 +250,20 @@ void UDPServer::run(){
                 }
                 packet = UDPData::fromUDP(Buffer,BufferLength);
                 //add to active list
-                Connections n;
-                n.PacketLength = packet.index;
-                n.position = 0;
-                n.address = client_addr;
-                n.address.sin_family = AF_INET;
-                n.Slen = sizeof(client_addr);
-                n.tries = 0;
-                n.toSend = UDPData(packet.index);
-                fileToUDP(n.toSend, n.PacketLength);
-                temp = (char*)malloc( (n.PacketLength-12) * sizeof(char));
-                memset(temp, '0',n.PacketLength -13 );
-                UDPData::makepacket(packet, temp, n.toSend.size(), true, true, false);
-                Send( UDPData::toUDP(packet),n.address, n.Slen );
-                n.lastSent = clock();
+                Connections nConn;
+                nConn = makeConnecton(packet.index, 0, client_addr, sizeof(client_addr), UDPData(packet.index), clock(), 0);
+                fileToUDP(nConn.toSend, nConn.PacketLength);
+                UDPData::makepacket(packet, temp, nConn.PacketLength-13, nConn.toSend.size(), true, true, false);
+                Send( UDPData::toUDP(packet),nConn.address, nConn.Slen );
                 free(temp);
-                Clients.push_back(n);
+                Clients.push_back(nConn);
                 if(DebugMode||verboseMode){
                     cout << "new client added" << endl;
                 }
             }
         }
         //clear client_addr
-        //cout << "clearing temp address" << endl;
         memset(&client_addr, 0, sizeof(sockaddr_in));
-        
     }
 }
 /*

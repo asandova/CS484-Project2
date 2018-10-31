@@ -30,6 +30,8 @@ typedef struct OpenConnections{
     int tries;
 } Connections;
 
+Connections makeConnecton(int PackLen, int pos, struct sockaddr_in addr, socklen_t Slen, UDPData toSend, clock_t lastSent, int tries);
+
 class UDPServer{
 
     private:

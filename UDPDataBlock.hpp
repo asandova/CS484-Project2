@@ -26,7 +26,7 @@ typedef struct DataBlock{
 class UDPData{
 
     private:
-        unsigned int BlockLength; // This is the length of each block
+        unsigned int BlockLength; // This is the length of each packet
         vector<UDPDataBlock> Blocks; //This is where all data that is either recevied or to be sent are stored
     public:
         UDPData(); //default
@@ -41,7 +41,7 @@ class UDPData{
         static string toUDP( UDPDataBlock Block); //converts a dataBlock to a UDP Payload
         static UDPDataBlock fromUDP(string block, int size); //convers a UDP playload to dataBlock
         void resizeTo(int nlen); //expand the chain to length nlen
-        static void makepacket(UDPDataBlock& pack,char* data,unsigned index, bool Ack, bool handshake, bool terminate);
+        static void makepacket(UDPDataBlock& pack,char* data, size_t datalen,unsigned index, bool Ack, bool handshake, bool terminate);
 };
 
 #endif //UDPDATABLOCK_HPP

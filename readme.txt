@@ -20,3 +20,5 @@ CS484 project 2
                 -v : sets verbose flag (works for both server and client)
                 -debug: sets debug flag (works for both server and client)
                 -ip: (client only) is the servers ip address
+                -host: (client only) is servers host name (currently not implemented)
+NOTES:
