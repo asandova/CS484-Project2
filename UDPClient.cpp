@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <vector>
 #include <string>
@@ -39,11 +40,28 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
     bzero(&server_addr,sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(Port);
+    
     if(useHostName){
+        cout << "resolving hostname: " << ip << endl;
         string hIP = getHostIp(ip);
-        inet_pton(AF_INET, hIp.c_str(), &server_addr.sin_addr );
+        cout << "resolved hostname to: " << hIP << endl;
+        if( hIP.empty() ){
+            perror("Hostname resolution failed.");
+            exit(1);
+        }
+        inet_pton(AF_INET, hIP.c_str(), &server_addr.sin_addr );
+        if( inet_aton(hIP.c_str(),&server_addr.sin_addr) == 0  ){
+            fprintf(stderr, "inet_aton() failed\n");
+            exit(1);
+        }
     }else{
+        cout << "IP: " << ip << endl;
         inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
+        if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
+            fprintf(stderr, "inet_aton() failed\n");
+            exit(1);
+        }
+
     }
 
     if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
@@ -51,10 +69,6 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
         exit(1);
     }
 
-    if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
-        fprintf(stderr, "inet_aton() failed\n");
-        exit(1);
-    }
 
 }
 
@@ -282,16 +296,13 @@ string UDPClient::getHostIp(string name){
     struct hostent *he;
     struct in_addr **addr_list;
     int i;
-
-    if(  (he =  gethostbyname(name) ) == NULL ){
+    if(  (he = gethostbyname(name.c_str()) ) == NULL ){
         perror("gethostbyname:");
         exit(1);
     }
     addr_list = (struct in_addr **)he->h_addr_list;
-
     for(i = 0; addr_list[i] != NULL; i++){
-        strcpy(ip, inet_ntoa(*addr_list[i])  );
-        return string(ip);
+        return string(inet_ntoa(*addr_list[i]));
     }
     return string();
 }
