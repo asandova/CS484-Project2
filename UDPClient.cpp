@@ -24,7 +24,7 @@ bool UDPClient::DebugMode = false;
 bool UDPClient::verboseMode = false;
 int UDPClient::Ssocket;
 
-UDPClient::UDPClient(string ip, int port){
+UDPClient::UDPClient(string ip, int port, bool useHostName){
     BufferLength = 512;
     Port = port;
     Buffer = string();
@@ -53,7 +53,7 @@ UDPClient::UDPClient(string ip, int port){
 
 }
 
-UDPClient::UDPClient(string ip, int port, unsigned int bufferLen){
+UDPClient::UDPClient(string ip, int port, unsigned int bufferLen, bool useHostName){
     BufferLength = bufferLen;
     Port = port;
     Buffer = string();
@@ -279,4 +279,8 @@ void UDPClient::terminateClient(int signum){
     cout << "\nInterrupt signal (" << signum << ") received." << endl;
     closeSocket();
     exit(signum );
+}
+string UDPClient::getHostIp(string name){
+    
+
 }

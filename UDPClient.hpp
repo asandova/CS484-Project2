@@ -41,8 +41,8 @@ class UDPClient{
     public:
         static bool DebugMode;
         static bool verboseMode;
-        UDPClient(string ip, int port);
-        UDPClient(string ip, int port, unsigned int bufferLen);
+        UDPClient(string ip, int port, bool useHostName);
+        UDPClient(string ip, int port, unsigned int bufferLen, bool useHostName);
         //void echo();
         void save(string filename);
         int run();
@@ -51,6 +51,7 @@ class UDPClient{
         void Send(string data);
         void Receive();
         static void closeSocket();
+        string getHostIp(string name);
 
 };
 #endif //UDPCLIENT_HPP

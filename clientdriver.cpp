@@ -12,6 +12,7 @@ int main( int argc, char* argv[]){
 	int Port = 65535;
 	string filename = "";
 	string IP;
+	bool useHost = false;
 	if(argc > 1){
 		int i = 0;
 		while(i < argc){
@@ -25,6 +26,12 @@ int main( int argc, char* argv[]){
 			}
 			if(strcmp(argv[i], "-ip") == 0){
 				IP = string(argv[i+1]);
+				useHost = false;
+				i++;
+			}
+			if(strcmp(argv[i], "-host" ) == 0){
+				IP = string(argv[i+1]);
+				useHost = true;
 				i++;
 			}
 			if(strcmp(argv[i], "-v") == 0){
@@ -40,8 +47,9 @@ int main( int argc, char* argv[]){
 			i++;
 		}
 	}
+
 	cout << "Address " << IP << ":"<< Port << endl;
-	UDPClient client = UDPClient(IP, Port);
+	UDPClient client = UDPClient(IP, Port, useHost);
 	if(client.run()){
 		client.save(filename);
 	}
