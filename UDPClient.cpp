@@ -160,7 +160,7 @@ int UDPClient::run(){
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
                     totalPackets = packet.index;
-                    temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
+                    temp = (char*) malloc( (BufferLength-12) * sizeof(char) );
                     memset(temp, '0', BufferLength-13);
                     UDPData::makepacket(packet, temp, 0, true, true, false);
                     Send( UDPData::toUDP(packet));
@@ -182,7 +182,7 @@ int UDPClient::run(){
             }
             else {
                 //receive data packet
-                temp = (char*) malloc( (BufferLength-13+1) * sizeof(char) );
+                temp = (char*) malloc( (BufferLength-12) * sizeof(char) );
                 memset(temp, '0', (BufferLength-13));
                 if(position >= receivedData.size()){
                     UDPData::makepacket(packet,temp,0,false,false, true);

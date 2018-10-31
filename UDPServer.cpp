@@ -171,9 +171,16 @@ void UDPServer::run(){
                         if(DebugMode||verboseMode){
                             cout << "Termination packet recevied. Termination connection" << endl;
                         }
-                        temp = (char*)malloc( (char)(itr->PacketLength-13+1) );
+                        cout << "allocasting mem" << endl;
+                        cout << (itr->PacketLength - 12) << endl;
+                        cout << 
+                        temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
+                        cout << (itr->PacketLength - 13) << endl;
+                        cout << "setting mem" << endl;
                         memset(temp,'0',(itr->PacketLength - 13));
-                        UDPData::makepacket(packet, temp, 0,false, false, true);
+                        cout << "constructing packet" << endl;
+                        UDPData::makepacket(packet, temp, 0, false, false, true);
+                        cout << "sending" << endl;
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
                         cout << "erasing finised clients" << endl;
                         Clients.erase(itr);
@@ -220,7 +227,7 @@ void UDPServer::run(){
                                 }
                                 temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
                                 memset(temp,'0',(itr->PacketLength - 13));
-                                UDPData::makepacket(packet, temp,0, false,false,true);
+                                UDPData::makepacket(packet, temp, 0, false,false,true);
                                 Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                                 free(temp);
                                 Clients.erase(itr);
@@ -237,7 +244,7 @@ void UDPServer::run(){
                             }
                             temp = (char*)malloc( (itr->PacketLength-12) * sizeof(char) );
                             memset(temp,'0',(itr->PacketLength - 13));
-                            UDPData::makepacket(packet, temp,0, false,false,true);
+                            UDPData::makepacket(packet, temp, 0, false,false,true);
                             Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                             Clients.erase(itr);
                             free(temp);

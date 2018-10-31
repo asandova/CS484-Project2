@@ -61,7 +61,7 @@ void UDPData::toFile(string filename){
     ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
-        outfile.write( Blocks[i].data.c_str(), BlockLength);
+        outfile.write( Blocks[i].data.c_str(), BlockLength-13);
     }
     outfile.close();
 }
@@ -142,7 +142,7 @@ UDPDataBlock UDPData::fromUDP(string block, int size){
     cout << block.substr(3,10) << endl;
     sindex >> incomming.index;
     cout << incomming.index << endl;
-    incomming.data = block.substr(13,size-14);
+    incomming.data = block.substr(13,size-13);
     cout << "Packet converted" << endl;
     return incomming;
 }
