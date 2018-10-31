@@ -39,7 +39,12 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
     bzero(&server_addr,sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(Port);
-    inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
+    if(useHostName){
+        string hIP = getHostIp(ip);
+        inet_pton(AF_INET, hIp.c_str(), &server_addr.sin_addr );
+    }else{
+        inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
+    }
 
     if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
         perror((char * )Ssocket);
@@ -101,9 +106,7 @@ int UDPClient::run(){
     UDPDataBlock packet;
 
     //constructing connection request
-    temp = (char*) malloc( 510 * sizeof(char) );
-    memset(temp, '0', 509);
-    UDPData::makepacket(packet,temp,BufferLength,false,true,false);
+    UDPData::makepacket(packet, temp, 509, BufferLength, false, true, false);
     //sending connction request
     Send( UDPData::toUDP(packet));
     lastSent = clock();
@@ -119,7 +122,7 @@ int UDPClient::run(){
         if(verboseMode || DebugMode){
             cout << "waiting for responce." << endl;
         }
-        int selRet = select(Ssocket+1, &rfds, NULL,NULL, &waitTime);
+        int selRet = select(Ssocket+1, &rfds, NULL, NULL, &waitTime);
         if(selRet == -1){
             //error
             perror("bind");
@@ -160,18 +163,14 @@ int UDPClient::run(){
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
                     totalPackets = packet.index;
-                    temp = (char*) malloc( (BufferLength-12) * sizeof(char) );
-                    memset(temp, '0', BufferLength-13);
-                    UDPData::makepacket(packet, temp, 0, true, true, false);
+                    UDPData::makepacket(packet, temp, BufferLength-13, 0, true, true, false);
                     Send( UDPData::toUDP(packet));
                     lastSent = clock();
                     lastPacket = packet;
                     tries= 0;
                 }else{
                     //resending start connection packet
-                    temp = (char*) malloc( 510 * sizeof(char) );
-                    memset(temp, '0', 509);
-                    UDPData::makepacket(packet, temp, BufferLength, false, true, false);
+                    UDPData::makepacket(packet, temp, 509, BufferLength, false, true, false);
                     Send( UDPData::toUDP(packet) );
                     lastSent = clock();
                     lastPacket = packet;
@@ -182,10 +181,8 @@ int UDPClient::run(){
             }
             else {
                 //receive data packet
-                temp = (char*) malloc( (BufferLength-12) * sizeof(char) );
-                memset(temp, '0', (BufferLength-13));
                 if(position >= receivedData.size()){
-                    UDPData::makepacket(packet,temp,0,false,false, true);
+                    UDPData::makepacket(packet, temp, BufferLength-13,0, false, false, true);
                     transferComplete = true;
                 }
                 else{
@@ -193,9 +190,9 @@ int UDPClient::run(){
                     position++;
                     if(position >= receivedData.size()){
                         transferComplete = true;
-                        UDPData::makepacket(packet,temp,0,false,false, true);
+                        UDPData::makepacket(packet ,temp, BufferLength-13, 0, false, false, true);
                     }else{
-                        UDPData::makepacket(packet,temp,position,true,false,false);
+                        UDPData::makepacket(packet ,temp, BufferLength-13, position, true, false, false);
                     }
                 }
                 Send(UDPData::toUDP(packet) );
@@ -238,7 +235,7 @@ void UDPClient::Send(string data){
         cout << "Data:" << data << endl;
     }
     int sendlen;
-    if( (sendlen = sendto(Ssocket, data.c_str() , BufferLength, 0, (struct sockaddr * ) &server_addr, Slength )) == -1){
+    if( (sendlen = sendto(Ssocket, data.c_str(), BufferLength, 0, (struct sockaddr * ) &server_addr, Slength )) == -1){
         perror("sendto");
         exit(1);
     }
@@ -252,7 +249,7 @@ void UDPClient::Receive(){
     if(DebugMode || verboseMode) {cout << "Receiving..." << endl;}
     char* buf = &Buffer[0];
     memset(buf, '0', BufferLength);
-    if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength,MSG_WAITALL,(struct sockaddr * ) &server_addr, &Slength )) == -1 ){
+    if( (ReceiveLength = recvfrom(Ssocket, buf, BufferLength, 0, (struct sockaddr * ) &server_addr, &Slength )) == -1 ){
             perror("revfrom()");
             close(Ssocket);
             exit(1);
@@ -281,6 +278,20 @@ void UDPClient::terminateClient(int signum){
     exit(signum );
 }
 string UDPClient::getHostIp(string name){
-    
+    char * ip;
+    struct hostent *he;
+    struct in_addr **addr_list;
+    int i;
 
+    if(  (he =  gethostbyname(name) ) == NULL ){
+        perror("gethostbyname:");
+        exit(1);
+    }
+    addr_list = (struct in_addr **)he->h_addr_list;
+
+    for(i = 0; addr_list[i] != NULL; i++){
+        strcpy(ip, inet_ntoa(*addr_list[i])  );
+        return string(ip);
+    }
+    return string();
 }
