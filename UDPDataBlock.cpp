@@ -37,7 +37,7 @@ void UDPData::toFile(string filename){
     ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
-        if(i+1 != Blocks.size()){
+        if(i+1 == Blocks.size()){
             removePadding(Blocks[i]);
         }
         outfile.write( Blocks[i].data.c_str(), Blocks[i].data.size());
