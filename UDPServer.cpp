@@ -120,7 +120,7 @@ void UDPServer::run(){
     signal(SIGINT, terminateServer);
     fd_set rfds;
     FD_ZERO(&rfds);
-    char * temp = nullptr;
+    char* temp;
     int running = 1;
     while(running){
         FD_SET(Ssocket, &rfds);
@@ -176,7 +176,7 @@ void UDPServer::run(){
                         if(DebugMode||verboseMode){
                             cout << "Termination packet recevied. Termination connection" << endl;
                         }
-                        UDPData::makepacket(packet, temp,itr->PacketLength-13, 0, false, false, true);
+                        UDPData::makepacket(packet, &temp,itr->PacketLength-13, 0, false, false, true);
                         Send( UDPData::toUDP(packet) ,itr->address , itr->Slen );
                         Clients.erase(itr);
                         free(temp);
@@ -193,7 +193,7 @@ void UDPServer::run(){
                             if(DebugMode||verboseMode){
                                 cout << "Resending handshake" << endl;
                             }
-                            UDPData::makepacket(packet, temp ,itr->PacketLength - 13, itr->toSend.size(), true, true, false);
+                            UDPData::makepacket(packet, &temp ,itr->PacketLength - 13, itr->toSend.size(), true, true, false);
                             Send( UDPData::toUDP(packet) ,itr->address, itr->Slen );
                             free(temp);
                             itr->lastSent = clock();
@@ -218,7 +218,7 @@ void UDPServer::run(){
                                 if(DebugMode||verboseMode){
                                     cout << "All data has been sent.\nTerminatiing connection" << endl;
                                 }
-                                UDPData::makepacket(packet, temp,itr->PacketLength - 13, 0, false,false,true);
+                                UDPData::makepacket(packet, &temp,itr->PacketLength - 13, 0, false,false,true);
                                 Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                                 free(temp);
                                 Clients.erase(itr);
@@ -233,7 +233,7 @@ void UDPServer::run(){
                             if(DebugMode||verboseMode){
                                 cout << "All data has been sent.\nTerminatiing connection" << endl;
                             }
-                            UDPData::makepacket(packet, temp, itr->PacketLength - 13,0, false,false,true);
+                            UDPData::makepacket(packet, &temp, itr->PacketLength - 13,0, false,false,true);
                             Send( UDPData::toUDP( packet ),itr->address, itr->Slen );
                             Clients.erase(itr);
                             free(temp);
@@ -253,7 +253,7 @@ void UDPServer::run(){
                 Connections nConn;
                 nConn = makeConnecton(packet.index, 0, client_addr, sizeof(client_addr), UDPData(packet.index), clock(), 0);
                 fileToUDP(nConn.toSend, nConn.PacketLength);
-                UDPData::makepacket(packet, temp, nConn.PacketLength-13, nConn.toSend.size(), true, true, false);
+                UDPData::makepacket(packet, &temp, nConn.PacketLength-13, nConn.toSend.size(), true, true, false);
                 Send( UDPData::toUDP(packet),nConn.address, nConn.Slen );
                 free(temp);
                 Clients.push_back(nConn);

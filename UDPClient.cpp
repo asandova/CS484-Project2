@@ -40,7 +40,7 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
     bzero(&server_addr,sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(Port);
-    
+
     if(useHostName){
         cout << "resolving hostname: " << ip << endl;
         string hIP = getHostIp(ip);
@@ -120,11 +120,12 @@ int UDPClient::run(){
     UDPDataBlock packet;
 
     //constructing connection request
-    UDPData::makepacket(packet, temp, 509, BufferLength, false, true, false);
+    UDPData::makepacket(packet, &temp, 509, BufferLength, false, true, false);
     //sending connction request
     Send( UDPData::toUDP(packet));
     lastSent = clock();
     lastPacket = packet;
+    
     free(temp);
 
     //handshake loop
@@ -146,7 +147,7 @@ int UDPClient::run(){
         else if(selRet == 0){
             //timeout
             if(verboseMode || DebugMode){
-            cout << "Time out occured" << endl;
+                cout << "Time out occured" << endl;
             }
             if(tries > 5){
                 cout << "Failed to connect. Shuting down" << endl;
@@ -164,6 +165,9 @@ int UDPClient::run(){
         }
         else{
             //Received a packet
+            if(verboseMode || DebugMode){
+                cout << "Incomming packet" << endl;
+            }
             Receive();
             packet = UDPData::fromUDP(Buffer,BufferLength);
             if(packet.terminate){
@@ -177,14 +181,14 @@ int UDPClient::run(){
                     //sending the server ack for expected file length
                     receivedData = UDPData(BufferLength, packet.index );
                     totalPackets = packet.index;
-                    UDPData::makepacket(packet, temp, BufferLength-13, 0, true, true, false);
+                    UDPData::makepacket(packet, &temp, BufferLength-13, 0, true, true, false);
                     Send( UDPData::toUDP(packet));
                     lastSent = clock();
                     lastPacket = packet;
                     tries= 0;
                 }else{
                     //resending start connection packet
-                    UDPData::makepacket(packet, temp, 509, BufferLength, false, true, false);
+                    UDPData::makepacket(packet, &temp, 509, BufferLength, false, true, false);
                     Send( UDPData::toUDP(packet) );
                     lastSent = clock();
                     lastPacket = packet;
@@ -196,7 +200,7 @@ int UDPClient::run(){
             else {
                 //receive data packet
                 if(position >= receivedData.size()){
-                    UDPData::makepacket(packet, temp, BufferLength-13,0, false, false, true);
+                    UDPData::makepacket(packet, &temp, BufferLength-13,0, false, false, true);
                     transferComplete = true;
                 }
                 else{
@@ -204,9 +208,9 @@ int UDPClient::run(){
                     position++;
                     if(position >= receivedData.size()){
                         transferComplete = true;
-                        UDPData::makepacket(packet ,temp, BufferLength-13, 0, false, false, true);
+                        UDPData::makepacket(packet ,&temp, BufferLength-13, 0, false, false, true);
                     }else{
-                        UDPData::makepacket(packet ,temp, BufferLength-13, position, true, false, false);
+                        UDPData::makepacket(packet ,&temp, BufferLength-13, position, true, false, false);
                     }
                 }
                 Send(UDPData::toUDP(packet) );
