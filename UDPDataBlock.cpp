@@ -61,6 +61,9 @@ void UDPData::toFile(string filename){
     ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
+        if(i+1 != Blocks.size()){
+            removePadding(Blocks[i]);
+        }
         outfile.write( Blocks[i].data.c_str(), Blocks[i].data.size());
     }
     outfile.close();
@@ -173,4 +176,14 @@ void UDPData::makepacket(UDPDataBlock& pack, char** data, size_t datalen, unsign
     pack.handshake = handshake;
     pack.Ack = Ack;
     pack.terminate = terminate;
+}
+
+void UDPData::removePadding(UDPDataBlock& block){
+
+    for(int i = block.data.size()-1; i >= 0; i-- ){
+        if(block.data[i] != '0'){
+            block.data.resize(i);
+            break;
+        }
+    }
 }
