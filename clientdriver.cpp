@@ -1,3 +1,10 @@
+/*
+*   File: clientdriver.cpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: The driver program for the UPDClient
+*   Class: CS484
+*/
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -53,5 +60,5 @@ int main( int argc, char* argv[]){
 	if(client.run()){
 		client.save(filename);
 	}
-
+	return 0;
 }

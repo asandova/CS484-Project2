@@ -32,7 +32,6 @@ class UDPData{
         UDPData(); //default
         UDPData(unsigned int blen);//sets the size of each block
         UDPData(unsigned int blen, int size); //sets the size of each block and amount of blocks to store
-        //void parseFile(string filename);// converts a file to a chain of Blocks
         void toFile(string filename); // converts the chain of block to a file
         void append(string data);//add a block to the end of the chain
         UDPDataBlock& operator[](size_t index); //returns a block at position index

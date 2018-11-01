@@ -1,3 +1,10 @@
+/*
+*   File: Serverdriver.cpp
+*   Author: August B. Sandoval
+*   Date: 2018-10-19
+*   Purpose: The driver program for the UPDServer
+*   Class: CS484
+*/
 #include <unistd.h>
 #include <iostream>
 #include <stdio.h>
@@ -40,5 +47,5 @@ int main(int argc, char* argv[]){
     UDPServer testServer = UDPServer("toSend.txt",Port);
     //testServer.echo();
     testServer.run();
-    return -1;
+    return 0;
 }

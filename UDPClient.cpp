@@ -26,22 +26,31 @@ bool UDPClient::verboseMode = false;
 int UDPClient::Ssocket;
 
 UDPClient::UDPClient(string ip, int port, bool useHostName){
-    BufferLength = 512;
+    //Constructor: 
+    //IP: String - Is the servers ip address or host name
+    //port: int - is the lisenting port for the server
+    //useHostname: bool - is the flag the tell the server a host name has been passed in
+    BufferLength = 512; // default packet length
     Port = port;
-    Buffer = string();
+    Buffer = string();// setting the input buffer
     Buffer.resize(BufferLength, '0');
 
     Slength = sizeof(server_addr);
 
+    //setting the wait time for who long to wait for in comming packets
     waitTime.tv_sec = 0;
-    waitTime.tv_usec = 500000;
-    tries = 0;
+    waitTime.tv_usec = 500; //set to 500 microseconds
+    
+    tries = 0; //the number of attepts the client has sent to the serve 
 
+    //initializing the server address variable
     bzero(&server_addr,sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(Port);
 
+    //checking if iseHostname flag is set
     if(useHostName){
+        //if True it resolves the hostname to a ip address
         cout << "resolving hostname: " << ip << endl;
         string hIP = getHostIp(ip);
         cout << "resolved hostname to: " << hIP << endl;
@@ -55,6 +64,7 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
             exit(1);
         }
     }else{
+        //if false: it translate the ip string to a useable ip struct
         cout << "IP: " << ip << endl;
         inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
         if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
@@ -63,16 +73,20 @@ UDPClient::UDPClient(string ip, int port, bool useHostName){
         }
 
     }
-
+    //bind the socket to the defined port
     if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
+        //if binding failed it will display a error message and exit the program
         perror((char * )Ssocket);
         exit(1);
     }
-
-
 }
 
 UDPClient::UDPClient(string ip, int port, unsigned int bufferLen, bool useHostName){
+    //Constructor: 
+    //IP: String - Is the servers ip address or host name
+    //port: int - is the lisenting port for the server
+    //bufferLen: unsigned int - is the packet length the server want to recieve during data transfer
+    //useHostname: bool - is the flag the tell the server a host name has been passed in
     BufferLength = bufferLen;
     Port = port;
     Buffer = string();
@@ -80,8 +94,9 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen, bool useHostNa
 
     Slength = sizeof(server_addr);
 
+    //setting the wait time for who long to wait for in comming packets
     waitTime.tv_sec = 0;
-    waitTime.tv_usec = 500000;
+    waitTime.tv_usec = 500;
     tries = 0;
 
     bzero(&server_addr,sizeof(server_addr));
@@ -89,13 +104,35 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen, bool useHostNa
     server_addr.sin_port = htons(Port);
     inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
 
-    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
-        perror((char * )Ssocket);
-        exit(1);
-    }
+    //checking if iseHostname flag is set
+    if(useHostName){
+        //if True it resolves the hostname to a ip address
+        cout << "resolving hostname: " << ip << endl;
+        string hIP = getHostIp(ip);
+        cout << "resolved hostname to: " << hIP << endl;
+        if( hIP.empty() ){
+            perror("Hostname resolution failed.");
+            exit(1);
+        }
+        inet_pton(AF_INET, hIP.c_str(), &server_addr.sin_addr );
+        if( inet_aton(hIP.c_str(),&server_addr.sin_addr) == 0  ){
+            fprintf(stderr, "inet_aton() failed\n");
+            exit(1);
+        }
+    }else{
+        //if false: it translate the ip string to a useable ip struct
+        cout << "IP: " << ip << endl;
+        inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr );
+        if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
+            fprintf(stderr, "inet_aton() failed\n");
+            exit(1);
+        }
 
-    if( inet_aton(ip.c_str(),&server_addr.sin_addr) == 0  ){
-        fprintf(stderr, "inet_aton() failed\n");
+    }
+    //bind the socket to the defined port
+    if( (Ssocket = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP)) == -1 ){
+        //if binding failed it will display a error message and exit the program
+        perror((char * )Ssocket);
         exit(1);
     }
     if(DebugMode||verboseMode){
@@ -104,22 +141,31 @@ UDPClient::UDPClient(string ip, int port, unsigned int bufferLen, bool useHostNa
 }
 
 int UDPClient::run(){
+    //Run: actuly runs the server
     if(DebugMode||verboseMode){
         cout << "Client is running..." << endl;
     }
+    //capture the Control^C interupts
     signal(SIGINT, terminateClient );
+
     fd_set rfds;
     FD_ZERO(&rfds);
+    //set flags
     bool terminate = false;
     bool transferComplete = false;
+    //define buffer variable
     char* temp;
+    //stores the last packet sent to the server
     UDPDataBlock lastPacket;
 
     unsigned int position = 0;
-    unsigned int totalPackets = numeric_limits<unsigned int>::max(); 
+    //inital set the total number of packets to unsinged int limits
+    //this will be over written one handshake with the server is done
+    unsigned int totalPackets = numeric_limits<unsigned int>::max();
+
     UDPDataBlock packet;
 
-    //constructing connection request
+    //constructing inital connection request
     UDPData::makepacket(packet, &temp, 509, BufferLength, false, true, false);
     //sending connction request
     Send( UDPData::toUDP(packet));
@@ -130,13 +176,18 @@ int UDPClient::run(){
 
     //handshake loop
     while(position < totalPackets && !terminate){
+        //in waiting loop
+
+        //refreshes the wait time after each iteration
         waitTime.tv_sec = 0;
-        waitTime.tv_usec = 5000;
+        waitTime.tv_usec = 500;
         FD_SET(Ssocket, &rfds);
         //checking for incomming packets
         if(verboseMode || DebugMode){
             cout << "waiting for responce." << endl;
         }
+        //lisens for for incomming packets for a set time period
+        //will set a flag when a packet is recieved or time has expired
         int selRet = select(Ssocket+1, &rfds, NULL, NULL, &waitTime);
         if(selRet == -1){
             //error
@@ -199,29 +250,36 @@ int UDPClient::run(){
             }
             else {
                 //receive data packet
+
+                //tests if all data has been received
                 if(position >= receivedData.size()){
                     UDPData::makepacket(packet, &temp, BufferLength-13,0, false, false, true);
                     transferComplete = true;
                 }
                 else{
+                    //inserts the revicved packet in to the correct order
                     receivedData[packet.index] = packet;
                     position++;
+                    //test if this packet is the last packet
                     if(position >= receivedData.size()){
+                        //if true: send termination packet to server
                         transferComplete = true;
                         UDPData::makepacket(packet ,&temp, BufferLength-13, 0, false, false, true);
                     }else{
+                        //if false: ack received packet and ask for next packet
                         UDPData::makepacket(packet ,&temp, BufferLength-13, position, true, false, false);
                     }
                 }
+                //sending packet
                 Send(UDPData::toUDP(packet) );
-                lastSent = clock();
-                lastPacket = packet;
+                lastSent = clock();//setting time of last sent
+                lastPacket = packet;//saveing sent packet
                 free(temp);
             }     
            continue;    
         }
     }
-    closeSocket();
+    closeSocket();//closes socket
     cout << "Transfer Complete: " << transferComplete << endl;
     return transferComplete;
 }
@@ -246,7 +304,7 @@ void UDPClient::echo(){
 }*/
 
 void UDPClient::Send(string data){
-
+    //send the passed in data to the sever
     if(DebugMode || verboseMode){
         cout << "Sending: " << data << endl;
         cout << "DataLength:" << data.size() << endl;
@@ -263,7 +321,7 @@ void UDPClient::Send(string data){
 }
 
 void UDPClient::Receive(){
-
+    //receives a packet from the server and save it in buffer
     if(DebugMode || verboseMode) {cout << "Receiving..." << endl;}
     char* buf = &Buffer[0];
     memset(buf, '0', BufferLength);
@@ -280,10 +338,12 @@ void UDPClient::Receive(){
 }
 
 void UDPClient::save(string filename){
+    //saves completed transfer toa file if a given name
     receivedData.toFile(filename);
 }
 
 void UDPClient::closeSocket(){
+    //close the socket properly
     if( close(Ssocket) == -1 ){
         perror("Socket Closing Error: ");
         exit(1);
@@ -296,6 +356,8 @@ void UDPClient::terminateClient(int signum){
     exit(signum );
 }
 string UDPClient::getHostIp(string name){
+    //preforms host name resolution
+    //returns a string of the resolved ip address
     char * ip;
     struct hostent *he;
     struct in_addr **addr_list;

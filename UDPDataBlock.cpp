@@ -17,7 +17,9 @@
 using namespace std;
 
 UDPData::UDPData(){
-    BlockLength = 499;
+    //default constructor
+    //set the total packet length to 512 bytes
+    BlockLength = 512;
     Blocks = vector<UDPDataBlock>();
 }
 
@@ -30,34 +32,8 @@ UDPData::UDPData(unsigned int blockLength, int size){
     Blocks = vector<UDPDataBlock>();
     resizeTo(size);
 }
-/*
-void UDPData::parseFile(string filename){
-    cout << "reading file: " << filename << endl;
-    cout << BlockLength << endl;
-    ifstream datafile;
-    datafile.open(filename, ifstream::in | ifstream::binary);
-    if(datafile.is_open()){
-        while(!datafile.fail()){
-            char C;
-            string data = "";
-            int count = 0;
-            while(count < BlockLength && !datafile.fail()){
-                C = datafile.get();
-                data.push_back(C);
-                count++;
-            }
-            //cout << endl;
-            //cout << data << endl;
-            append(data);
-        }
-        cout << "closing file" << endl;
-        datafile.close();
-    }else{
-        cout << "failed to open file" << endl;
-    }
-}*/
 void UDPData::toFile(string filename){
-    cout << "writing to file" << endl;
+    //cout << "writing to file" << endl;
     ofstream outfile;
     outfile.open(filename, ios::out | ios::binary);
     for(int i = 0; i < Blocks.size(); i++){
@@ -135,7 +111,7 @@ string UDPData::toUDP(UDPDataBlock Block){
 }
 
 UDPDataBlock UDPData::fromUDP(string block, int size){
-    cout << "converting to Packet" << endl;
+    //cout << "converting to Packet" << endl;
     UDPDataBlock incomming;
     
     incomming.terminate = (bool)(block[0] - '0');
@@ -146,20 +122,22 @@ UDPDataBlock UDPData::fromUDP(string block, int size){
     sindex >> incomming.index;
     cout << incomming.index << endl;
     incomming.data = block.substr(13,size-13);
-    cout << "Packet converted" << endl;
+    //cout << "Packet converted" << endl;
     return incomming;
 }
 
 int UDPData::size(){
+    //returns the number of block
     return Blocks.size();
 }
 
 unsigned int UDPData::getBlockSize(){
+    //returns the the max size of the packect data block
     return BlockLength;
 }
 
 void UDPData::resizeTo(int nLen){
-    cout << "resizing" << endl;
+    //Resizes the UDPdata vector to size nLen 
     UDPDataBlock blank;
     blank.index = 0;
     blank.data = string('0',BlockLength-13);
@@ -169,6 +147,7 @@ void UDPData::resizeTo(int nLen){
     Blocks.resize(nLen,blank);
 }
 void UDPData::makepacket(UDPDataBlock& pack, char** data, size_t datalen, unsigned index, bool Ack, bool handshake, bool terminate){
+    //construct a UDPDataBlock from given arguments
     *data = (char*)malloc(datalen+1 * sizeof(char));
     memset(*data, '0', datalen);
     pack.data = string(*data);
@@ -179,7 +158,7 @@ void UDPData::makepacket(UDPDataBlock& pack, char** data, size_t datalen, unsign
 }
 
 void UDPData::removePadding(UDPDataBlock& block){
-
+    //remove any added padding to the last packet
     for(int i = block.data.size()-1; i >= 0; i-- ){
         if(block.data[i] != '0'){
             block.data.resize(i);

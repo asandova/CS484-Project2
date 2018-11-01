@@ -117,6 +117,7 @@ void UDPServer::run(){
     if(DebugMode||verboseMode){
         cout << "Server is running..." << endl;
     }
+    clock_t idle;
     signal(SIGINT, terminateServer);
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -245,9 +246,7 @@ void UDPServer::run(){
             }
             if(newConnection){
                 //Establishing a new connection
-                if(DebugMode||verboseMode){
-                    cout << "Creating new connection" << endl;
-                }
+                cout << "Creating new connection" << endl;
                 packet = UDPData::fromUDP(Buffer,BufferLength);
                 //add to active list
                 Connections nConn;
@@ -257,9 +256,7 @@ void UDPServer::run(){
                 Send( UDPData::toUDP(packet),nConn.address, nConn.Slen );
                 free(temp);
                 Clients.push_back(nConn);
-                if(DebugMode||verboseMode){
-                    cout << "new client added" << endl;
-                }
+                cout << "new Client added" << endl;
             }
         }
         //clear client_addr
